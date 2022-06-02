@@ -1,6 +1,6 @@
+use data_encoding::DecodeError;
 use std::error::Error;
 use std::fmt::{Display, Formatter};
-use data_encoding::DecodeError;
 use totp_rs::TotpUrlError;
 
 #[derive(Debug)]
@@ -17,7 +17,6 @@ impl Display for TotpError {
         write!(f, "TOTP Error: {:?}", self)
     }
 }
-
 
 impl From<DecodeError> for TotpError {
     fn from(e: DecodeError) -> Self {

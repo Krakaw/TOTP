@@ -1,18 +1,18 @@
 extern crate core;
 
-mod storage;
-mod generator;
 mod errors;
+mod generator;
+mod storage;
 
-use clap::{Parser, Subcommand};
-use std::io::Write;
-use std::thread::sleep;
-use std::time::Duration;
-use chrono::NaiveDateTime;
-use rpassword::read_password;
 use crate::errors::TotpError;
 use crate::generator::Generator;
 use crate::storage::{Storage, Token};
+use chrono::NaiveDateTime;
+use clap::{Parser, Subcommand};
+use rpassword::read_password;
+use std::io::Write;
+use std::thread::sleep;
+use std::time::Duration;
 
 /// Generate TOTP codes
 #[derive(Parser, Debug)]
@@ -69,26 +69,30 @@ fn main() -> Result<(), TotpError> {
         Commands::Add { account, secret } => {
             storage.add_account(account.to_owned(), secret.to_owned());
         }
-        Commands::Generate { account, time, repeat_delay } => {
-            loop {
-                for (account_name, token) in storage.accounts.iter().filter(|(acc, _token)| {
-                    if let Some(account) = account {
-                        acc.to_lowercase().contains(&account.to_lowercase())
-                    } else {
-                        true
-                    }
-                }) {
-                    let generator = Generator::new(token)?;
-                    let totp = generator.generate(time.map(|t| t.timestamp() as u64)).unwrap();
-                    println!("{: <10} : {: <10}", account_name, totp);
-                }
-                if let Some(repeat_delay) = repeat_delay {
-                    sleep(Duration::from_secs(*repeat_delay));
+        Commands::Generate {
+            account,
+            time,
+            repeat_delay,
+        } => loop {
+            for (account_name, token) in storage.accounts.iter().filter(|(acc, _token)| {
+                if let Some(account) = account {
+                    acc.to_lowercase().contains(&account.to_lowercase())
                 } else {
-                    break;
+                    true
                 }
+            }) {
+                let generator = Generator::new(token)?;
+                let totp = generator
+                    .generate(time.map(|t| t.timestamp() as u64))
+                    .unwrap();
+                println!("{: <10} : {: <10}", account_name, totp);
             }
-        }
+            if let Some(repeat_delay) = repeat_delay {
+                sleep(Duration::from_secs(*repeat_delay));
+            } else {
+                break;
+            }
+        },
     }
     Ok(())
 }

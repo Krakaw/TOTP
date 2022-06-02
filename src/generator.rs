@@ -1,6 +1,6 @@
-use totp_rs::{Algorithm, TOTP};
 use crate::errors::TotpError;
 use crate::Token;
+use totp_rs::{Algorithm, TOTP};
 
 pub struct Generator<'a> {
     totp: TOTP<&'a Token>,
@@ -9,9 +9,7 @@ pub struct Generator<'a> {
 impl<'a> Generator<'a> {
     pub fn new(token: &'a Token) -> Result<Self, TotpError> {
         let totp = TOTP::new(Algorithm::SHA1, 6, 1, 30, token, None, "".to_string())?;
-        Ok(Self {
-            totp
-        })
+        Ok(Self { totp })
     }
 
     pub fn generate(&self, time: Option<u64>) -> Result<String, TotpError> {
