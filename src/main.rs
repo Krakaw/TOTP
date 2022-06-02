@@ -41,6 +41,12 @@ enum Commands {
         #[clap(short, long)]
         secret: Token,
     },
+    /// Delete an account
+    Delete {
+        /// Account name
+        #[clap(short, long)]
+        account: String,
+    },
     /// Generate an OTP
     Generate {
         /// Account name
@@ -69,6 +75,9 @@ fn main() -> Result<(), TotpError> {
     match &cli.command {
         Commands::Add { account, secret } => {
             storage.add_account(account.to_owned(), secret.to_owned())?;
+        }
+        Commands::Delete { account } => {
+            storage.remove_account(account.to_owned())?;
         }
         Commands::Generate {
             account,

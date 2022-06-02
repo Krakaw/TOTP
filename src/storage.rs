@@ -65,6 +65,15 @@ impl Storage {
         self.save_file()
     }
 
+    pub fn remove_account(&mut self, account: AccountName) -> Result<(), TotpError> {
+        if !self.accounts.contains_key(&account) {
+            return Err(TotpError::AccountNotFound(account.to_string()));
+        }
+
+        let _ = self.accounts.remove(&account);
+        self.save_file()
+    }
+
     pub fn save_file(&self) -> Result<(), TotpError> {
         let mut contents = String::new();
         for (account, token) in &self.accounts {

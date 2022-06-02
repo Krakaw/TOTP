@@ -6,6 +6,7 @@ use totp_rs::TotpUrlError;
 
 #[derive(Debug)]
 pub enum TotpError {
+    AccountNotFound(String),
     Base32Decode(String),
     Clap(String),
     TotpUrl(String),
