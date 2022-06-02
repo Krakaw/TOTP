@@ -1,3 +1,4 @@
+use crate::encryption::Encryption;
 use data_encoding::BASE32;
 use std::collections::HashMap;
 use std::fmt;
@@ -49,44 +50,50 @@ pub struct Storage {
 }
 
 impl Storage {
-    pub fn new(password: String, filename: Option<String>) -> Self {
+    pub fn new(password: String, filename: Option<String>) -> Result<Self, TotpError> {
         let mut storage = Self {
             accounts: HashMap::new(),
             password,
             filename: filename.unwrap_or_else(|| ".storage.txt".to_string()),
         };
-        storage.load_file();
-        storage
+        storage.load_file()?;
+        Ok(storage)
     }
 
-    pub fn add_account(&mut self, account: AccountName, token: Token) {
+    pub fn add_account(&mut self, account: AccountName, token: Token) -> Result<(), TotpError> {
         let _ = self.accounts.insert(account, token);
         self.save_file()
     }
 
-    pub fn save_file(&self) {
+    pub fn save_file(&self) -> Result<(), TotpError> {
         let mut contents = String::new();
         for (account, token) in &self.accounts {
             contents.push_str(&format!("{}:{}\n", account, token));
         }
-        fs::write(&self.filename, contents)
-            .unwrap_or_else(|_| panic!("Failed to write {}", self.filename));
+        let encryption = Encryption::default();
+        let (encrypted_content, iv) = encryption.encrypt(&contents, &self.password)?;
+        fs::write(&self.filename, format!("{}:{}\n", encrypted_content, iv))
+            .map_err(|e| TotpError::FileIO(e.to_string()))?;
+        Ok(())
     }
 
-    pub fn load_file(&mut self) {
+    pub fn load_file(&mut self) -> Result<(), TotpError> {
         let file_contents = fs::read_to_string(&self.filename).expect("Failed to read file");
+        let file_contents: Vec<&str> = file_contents.split(':').collect();
+        let content = file_contents[0];
+        let iv = file_contents[1].trim();
+        let encryption = Encryption::default();
+        let file_contents = encryption.decrypt(content, &self.password, iv)?;
         for (account, token) in file_contents
             .split('\n')
             .filter(|l| l.trim() != "")
             .map(|line| {
                 let parts = line.split(':').collect::<Vec<&str>>();
-                (
-                    parts[0].to_string(),
-                    parts[1].to_string().parse::<Token>().unwrap(),
-                )
+                (parts[0].to_string(), parts[1].to_string().parse::<Token>())
             })
         {
-            self.accounts.insert(account, token);
+            self.accounts.insert(account, token?);
         }
+        Ok(())
     }
 }

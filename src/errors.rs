@@ -1,4 +1,5 @@
 use data_encoding::DecodeError;
+use openssl::error::ErrorStack;
 use std::error::Error;
 use std::fmt::{Display, Formatter};
 use totp_rs::TotpUrlError;
@@ -8,6 +9,10 @@ pub enum TotpError {
     Base32Decode(String),
     Clap(String),
     TotpUrl(String),
+    Encryption(String),
+    Decryption(String),
+    FileIO(String),
+    Utf8(String),
 }
 
 impl Error for TotpError {}
@@ -33,5 +38,11 @@ impl From<TotpUrlError> for TotpError {
 impl From<clap::Error> for TotpError {
     fn from(e: clap::Error) -> Self {
         TotpError::Clap(e.to_string())
+    }
+}
+
+impl From<ErrorStack> for TotpError {
+    fn from(e: ErrorStack) -> Self {
+        TotpError::Encryption(e.to_string())
     }
 }

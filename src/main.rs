@@ -1,5 +1,6 @@
 extern crate core;
 
+mod encryption;
 mod errors;
 mod generator;
 mod storage;
@@ -64,10 +65,10 @@ fn main() -> Result<(), TotpError> {
             read_password().unwrap()
         }
     };
-    let mut storage = Storage::new(password, Some(cli.filename));
+    let mut storage = Storage::new(password, Some(cli.filename))?;
     match &cli.command {
         Commands::Add { account, secret } => {
-            storage.add_account(account.to_owned(), secret.to_owned());
+            storage.add_account(account.to_owned(), secret.to_owned())?;
         }
         Commands::Generate {
             account,
