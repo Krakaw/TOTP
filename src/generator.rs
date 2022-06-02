@@ -15,7 +15,7 @@ impl<'a> Generator<'a> {
     pub fn generate(&self, time: Option<u64>) -> Result<(String, u64), TotpError> {
         let time = time.unwrap_or(chrono::Local::now().timestamp() as u64);
         let offset = time % 30;
-        let rounded_up =  (time - offset + 30) - time;
+        let rounded_up = (time - offset + 30) - time;
         Ok((self.totp.generate(time), rounded_up))
     }
 

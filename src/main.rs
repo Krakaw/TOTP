@@ -101,7 +101,10 @@ fn main() -> Result<(), TotpError> {
                 } else {
                     "\x1b[91m"
                 };
-                let output = format!("{: <10} {: <10} {}{:0>2}\x1b[0m", account_name, totp,colour, expiry);
+                let output = format!(
+                    "{: <10} {: <10} {}{:0>2}\x1b[0m",
+                    account_name, totp, colour, expiry
+                );
                 lines.push(output.len());
                 print!("{}\n", output);
             }
