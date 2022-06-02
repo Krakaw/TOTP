@@ -12,9 +12,11 @@ impl<'a> Generator<'a> {
         Ok(Self { totp })
     }
 
-    pub fn generate(&self, time: Option<u64>) -> Result<String, TotpError> {
+    pub fn generate(&self, time: Option<u64>) -> Result<(String, u64), TotpError> {
         let time = time.unwrap_or(chrono::Local::now().timestamp() as u64);
-        Ok(self.totp.generate(time))
+        let offset = time % 30;
+        let rounded_up =  (time - offset + 30) - time;
+        Ok((self.totp.generate(time), rounded_up))
     }
 
     pub fn check(&self, code: String, time: Option<u64>) -> bool {

@@ -11,7 +11,7 @@ use crate::storage::{Storage, Token};
 use chrono::NaiveDateTime;
 use clap::{Parser, Subcommand};
 use rpassword::read_password;
-use std::io::Write;
+use std::io::{stdout, Write};
 use std::thread::sleep;
 use std::time::Duration;
 
@@ -55,9 +55,9 @@ enum Commands {
         /// Time of token
         #[clap(short, long)]
         time: Option<NaiveDateTime>,
-        /// Loop every n seconds
+        /// Run on a loop
         #[clap(short, long)]
-        repeat_delay: Option<u64>,
+        repeat: bool,
     },
 }
 
@@ -82,8 +82,9 @@ fn main() -> Result<(), TotpError> {
         Commands::Generate {
             account,
             time,
-            repeat_delay,
+            repeat,
         } => loop {
+            let mut lines = Vec::new();
             for (account_name, token) in storage.accounts.iter().filter(|(acc, _token)| {
                 if let Some(account) = account {
                     acc.to_lowercase().contains(&account.to_lowercase())
@@ -92,13 +93,27 @@ fn main() -> Result<(), TotpError> {
                 }
             }) {
                 let generator = Generator::new(token)?;
-                let totp = generator
-                    .generate(time.map(|t| t.timestamp() as u64))
-                    .unwrap();
-                println!("{: <10} : {: <10}", account_name, totp);
+                let (totp, expiry) = generator.generate(time.map(|t| t.timestamp() as u64))?;
+                let colour = if expiry > 15 {
+                    "\x1b[92m"
+                } else if expiry > 5 {
+                    "\x1b[93m"
+                } else {
+                    "\x1b[91m"
+                };
+                let output = format!("{: <10} {: <10} {}{:0>2}\x1b[0m", account_name, totp,colour, expiry);
+                lines.push(output.len());
+                print!("{}\n", output);
             }
-            if let Some(repeat_delay) = repeat_delay {
-                sleep(Duration::from_secs(*repeat_delay));
+            if *repeat {
+                sleep(Duration::from_secs(1));
+                for char_count in lines {
+                    for i in 0..char_count {
+                        print!("{}", (8u8 as char));
+                    }
+                    print!("{}\r", (8u8 as char));
+                    stdout().flush();
+                }
             } else {
                 break;
             }
