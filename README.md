@@ -28,8 +28,6 @@ SUBCOMMANDS:
     delete      Delete an account
     generate    Generate an OTP
     help        Print this message or the help of the given subcommand(s)
-
-
 ```
 
 ### Add accounts
