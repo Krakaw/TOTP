@@ -114,7 +114,7 @@ fn main() -> Result<(), TotpError> {
         } => {
             let generator = Generator::new(token)?;
             let output = generator.check_range(otp, start.timestamp() as u64, *range)?;
-            let local_date = DateTime::<FixedOffset>::from_utc(output, start.offset().clone());
+            let local_date = DateTime::<FixedOffset>::from_utc(output, *start.offset());
             println!(
                 "OTP {}\nValid At:\n{} UTC\n{} {}",
                 otp,
@@ -125,9 +125,4 @@ fn main() -> Result<(), TotpError> {
         }
     }
     Ok(())
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
 }

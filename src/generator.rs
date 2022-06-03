@@ -22,7 +22,7 @@ impl<'a> Generator<'a> {
 
     pub fn check_range(
         &self,
-        code: &String,
+        code: &str,
         time: u64,
         range_in_minutes: u64,
     ) -> Result<NaiveDateTime, TotpError> {
@@ -34,12 +34,44 @@ impl<'a> Generator<'a> {
             if self.check(code, Some(i)) {
                 return Ok(NaiveDateTime::from_timestamp(i as i64, 0));
             }
-            i = i + 30;
+            i += 30;
         }
         Err(TotpError::InvalidOtpForRange)
     }
-    pub fn check(&self, code: &String, time: Option<u64>) -> bool {
+    pub fn check(&self, code: &str, time: Option<u64>) -> bool {
         let time = time.unwrap_or(chrono::Utc::now().timestamp() as u64);
         self.totp.check(code, time)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use chrono::Timelike;
+    use std::str::FromStr;
+
+    #[test]
+    fn generate() {
+        let secret = Token::from_str("JBSWY3DPEHPK3PXP").unwrap();
+        let generator = Generator::new(&secret).unwrap();
+        let (token, _) = generator.generate(Some(1654258053)).unwrap();
+        assert_eq!(token, "975361");
+    }
+
+    #[test]
+    fn check_range() {
+        let secret = Token::from_str("JBSWY3DPEHPK3PXP").unwrap();
+        let generator = Generator::new(&secret).unwrap();
+        let generated_time = NaiveDateTime::from_str("2022-06-03T08:00:00").unwrap();
+        let (token, _) = generator
+            .generate(Some(generated_time.timestamp() as u64))
+            .unwrap();
+        let time = generated_time.with_hour(7).unwrap();
+        let invalid_range = generator.check_range(&token, time.timestamp() as u64, 10);
+        assert!(invalid_range.is_err());
+        let valid_range = generator
+            .check_range(&token, time.timestamp() as u64, 61)
+            .unwrap();
+        assert_eq!(valid_range.timestamp(), generated_time.timestamp() - 30);
     }
 }

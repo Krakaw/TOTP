@@ -38,7 +38,7 @@ impl Display {
     ) -> Result<(), TotpError> {
         loop {
             let mut lines = Vec::new();
-            for (account_name, token) in self.storage.accounts.iter().filter(|(acc, _token)| {
+            for (account_name, token) in self.storage.to_iter().filter(|(acc, _token)| {
                 if let Some(account) = account {
                     acc.to_lowercase().contains(&account.to_lowercase())
                 } else {
@@ -59,10 +59,10 @@ impl Display {
                         "{: <10} {: <10} {}{:0>2}\x1b[0m",
                         account_name, totp, colour, expiry
                     ),
-                    OutputFormat::Short => format!("{}", totp),
+                    OutputFormat::Short => totp,
                 };
                 lines.push(output.len());
-                print!("{}\n", output);
+                println!("{}", output);
             }
             if *repeat {
                 sleep(Duration::from_secs(1));

@@ -61,3 +61,48 @@ impl Encryption {
         Ok(decrypted_content)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn encrypt() {
+        let encrypt = Encryption::default();
+        let (content, _iv) = encrypt.encrypt("TestContent", "password").unwrap();
+        assert!(!content.contains("TestContent"));
+    }
+
+    #[test]
+    fn decrypt() {
+        let encrypt = Encryption::default();
+        let content = encrypt
+            .decrypt(
+                "3wm4AUCJG+/Cr+NiZ/6M1tRaJp8ivdJCIFbzI8CcsTE=",
+                "password",
+                "ow1G5PUj8YY3Avnq2QpOPQ==",
+            )
+            .unwrap();
+        assert_eq!(content, "TestContent");
+    }
+
+    #[test]
+    fn decrypt_invalid_password() {
+        let encrypt = Encryption::default();
+        let content = encrypt.decrypt(
+            "3wm4AUCJG+/Cr+NiZ/6M1tRaJp8ivdJCIFbzI8CcsTE=",
+            "wrong",
+            "ow1G5PUj8YY3Avnq2QpOPQ==",
+        );
+        assert!(content.is_err());
+    }
+
+    #[test]
+    fn encrypt_decrypt() {
+        let encrypt = Encryption::default();
+        let (content, iv) = encrypt.encrypt("TestContent", "password").unwrap();
+        assert!(!content.contains("TestContent"));
+        let content = encrypt.decrypt(&content, "password", &iv).unwrap();
+        assert_eq!(content, "TestContent");
+    }
+}

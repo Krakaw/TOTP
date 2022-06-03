@@ -1,5 +1,6 @@
 use crate::encryption::Encryption;
 use data_encoding::BASE32;
+use std::collections::hash_map::Iter;
 use std::collections::HashMap;
 use std::fmt;
 use std::fmt::{Display, Formatter};
@@ -44,7 +45,7 @@ impl FromStr for Token {
 }
 
 pub struct Storage {
-    pub accounts: HashMap<AccountName, Token>,
+    accounts: HashMap<AccountName, Token>,
     password: String,
     filename: String,
 }
@@ -58,6 +59,16 @@ impl Storage {
         };
         storage.load_file()?;
         Ok(storage)
+    }
+
+    pub fn get_account_token(&self, account: AccountName) -> Result<Token, TotpError> {
+        if !self.accounts.contains_key(&account) {
+            return Err(TotpError::AccountNotFound(account.to_string()));
+        }
+        self.accounts
+            .get(&account)
+            .map(|t| t.clone())
+            .ok_or(TotpError::AccountNotFound(account.to_string()))
     }
 
     pub fn add_account(&mut self, account: AccountName, token: Token) -> Result<(), TotpError> {
@@ -87,22 +98,111 @@ impl Storage {
     }
 
     pub fn load_file(&mut self) -> Result<(), TotpError> {
-        let file_contents = fs::read_to_string(&self.filename).expect("Failed to read file");
-        let file_contents: Vec<&str> = file_contents.split(':').collect();
-        let content = file_contents[0];
-        let iv = file_contents[1].trim();
-        let encryption = Encryption::default();
-        let file_contents = encryption.decrypt(content, &self.password, iv)?;
-        for (account, token) in file_contents
-            .split('\n')
-            .filter(|l| l.trim() != "")
-            .map(|line| {
-                let parts = line.split(':').collect::<Vec<&str>>();
-                (parts[0].to_string(), parts[1].to_string().parse::<Token>())
-            })
-        {
-            self.accounts.insert(account, token?);
-        }
+        match fs::read_to_string(&self.filename) {
+            Ok(file_contents) => {
+                let file_contents: Vec<&str> = file_contents.split(':').collect();
+                let content = file_contents[0];
+                let iv = file_contents[1].trim();
+                let encryption = Encryption::default();
+                let file_contents = encryption.decrypt(content, &self.password, iv)?;
+                for (account, token) in
+                    file_contents
+                        .split('\n')
+                        .filter(|l| l.trim() != "")
+                        .map(|line| {
+                            let parts = line.split(':').collect::<Vec<&str>>();
+                            (parts[0].to_string(), parts[1].to_string().parse::<Token>())
+                        })
+                {
+                    self.accounts.insert(account, token?);
+                }
+            }
+            Err(_) => (),
+        };
+
         Ok(())
+    }
+
+    pub fn to_iter(&self) -> Iter<AccountName, Token> {
+        self.accounts.iter()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{Storage, Token};
+    use std::str::FromStr;
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    fn rand() -> u32 {
+        SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .subsec_nanos()
+    }
+
+    fn get_filename() -> String {
+        format!(".test.storage.{}.txt", rand())
+    }
+    #[test]
+    fn add_account() {
+        let filename = get_filename();
+        let mut storage = Storage::new("password".to_string(), Some(filename.clone())).unwrap();
+        assert_eq!(storage.to_iter().len(), 0);
+        storage
+            .add_account(
+                "Account1".to_string(),
+                Token::from_str("JBSWY3DPEHPK3PXP").unwrap(),
+            )
+            .unwrap();
+        assert_eq!(storage.to_iter().len(), 1);
+        let storage = Storage::new("password".to_string(), Some(filename.clone())).unwrap();
+        assert_eq!(storage.to_iter().len(), 1);
+        std::fs::remove_file(filename).unwrap();
+    }
+
+    #[test]
+    fn delete_account() {
+        let filename = get_filename();
+        let mut storage = Storage::new("password".to_string(), Some(filename.clone())).unwrap();
+        assert_eq!(storage.to_iter().len(), 0);
+        storage
+            .add_account(
+                "Account1".to_string(),
+                Token::from_str("JBSWY3DPEHPK3PXP").unwrap(),
+            )
+            .unwrap();
+        assert_eq!(storage.to_iter().len(), 1);
+        storage
+            .add_account(
+                "Account2".to_string(),
+                Token::from_str("JBSWY3DPEHPK3PXP").unwrap(),
+            )
+            .unwrap();
+        assert_eq!(storage.to_iter().len(), 2);
+        storage.remove_account("Account1".into()).unwrap();
+        assert_eq!(storage.to_iter().len(), 1);
+        std::fs::remove_file(filename).unwrap();
+    }
+
+    #[test]
+    fn get_account_token() {
+        let filename = get_filename();
+        let mut storage = Storage::new("password".to_string(), Some(filename.clone())).unwrap();
+        storage
+            .add_account(
+                "Account1".to_string(),
+                Token::from_str("JBSWY3DPEHPK3PXP").unwrap(),
+            )
+            .unwrap();
+        storage
+            .add_account("Account2".to_string(), Token::from_str("KRSXG5A=").unwrap())
+            .unwrap();
+        let token = storage.get_account_token("Account2".into()).unwrap();
+        assert_eq!(token.to_string(), "KRSXG5A=".to_string());
+        let token = storage.get_account_token("Account3".into());
+        assert!(token.is_err());
+
+        std::fs::remove_file(filename).unwrap();
     }
 }
