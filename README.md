@@ -36,4 +36,18 @@ SUBCOMMANDS:
 
     totp -p password add -a AccountName -s SecretToken
 
-### 
+### Generate tokens in a loop
+
+    totp -p password generate -r
+
+    Account1   123456     04
+    Account2   123456     04
+    Account3   123456     04
+
+### Delete an account
+
+    totp -p password delete -a AccountName
+
+### Check an OTP against a secret for a specific time within a range
+
+    totp -p password check -t TokenSecretKey -o 123456 -s 2022-06-03T08:35:00+02:00 -r 10  
