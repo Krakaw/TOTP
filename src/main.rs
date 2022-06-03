@@ -1,19 +1,19 @@
 extern crate core;
 
+mod display;
 mod encryption;
 mod errors;
 mod generator;
 mod storage;
 
+use crate::display::{Display, OutputFormat};
 use crate::errors::TotpError;
 use crate::generator::Generator;
 use crate::storage::{Storage, Token};
 use chrono::NaiveDateTime;
 use clap::{Parser, Subcommand};
 use rpassword::read_password;
-use std::io::{stdout, Write};
-use std::thread::sleep;
-use std::time::Duration;
+use std::io::Write;
 
 /// Generate TOTP codes
 #[derive(Parser, Debug)]
@@ -58,6 +58,9 @@ enum Commands {
         /// Run on a loop
         #[clap(short, long)]
         repeat: bool,
+        /// Output format
+        #[clap(short, long, default_value = "long")]
+        format: OutputFormat,
     },
 }
 
@@ -83,44 +86,11 @@ fn main() -> Result<(), TotpError> {
             account,
             time,
             repeat,
-        } => loop {
-            let mut lines = Vec::new();
-            for (account_name, token) in storage.accounts.iter().filter(|(acc, _token)| {
-                if let Some(account) = account {
-                    acc.to_lowercase().contains(&account.to_lowercase())
-                } else {
-                    true
-                }
-            }) {
-                let generator = Generator::new(token)?;
-                let (totp, expiry) = generator.generate(time.map(|t| t.timestamp() as u64))?;
-                let colour = if expiry > 15 {
-                    "\x1b[92m"
-                } else if expiry > 5 {
-                    "\x1b[93m"
-                } else {
-                    "\x1b[91m"
-                };
-                let output = format!(
-                    "{: <10} {: <10} {}{:0>2}\x1b[0m",
-                    account_name, totp, colour, expiry
-                );
-                lines.push(output.len());
-                print!("{}\n", output);
-            }
-            if *repeat {
-                sleep(Duration::from_secs(1));
-                for char_count in lines {
-                    for i in 0..char_count {
-                        print!("{}", (8u8 as char));
-                    }
-                    print!("{}\r", (8u8 as char));
-                    stdout().flush();
-                }
-            } else {
-                break;
-            }
-        },
+            format,
+        } => {
+            let display = Display { storage };
+            display.render(account, time, format, repeat)?;
+        }
     }
     Ok(())
 }

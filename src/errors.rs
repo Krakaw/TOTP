@@ -14,6 +14,7 @@ pub enum TotpError {
     Decryption(String),
     FileIO(String),
     Utf8(String),
+    StdIO(String),
 }
 
 impl Error for TotpError {}

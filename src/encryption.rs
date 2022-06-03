@@ -50,7 +50,7 @@ impl Encryption {
         let data = base64_decoded_content.as_slice();
         let key = password.as_slice();
         let decrypted_content = decrypt(cipher, key, Some(iv_decoded.as_slice()), data)
-            .map_err(|e| TotpError::Decryption("Invalid password".to_string()))?;
+            .map_err(|_e| TotpError::Decryption("Invalid password".to_string()))?;
         let decrypted_content =
             String::from_utf8(decrypted_content).map_err(|e| TotpError::Utf8(e.to_string()))?;
         if !decrypted_content.contains(format!("\n{}:{}", self.key, self.value).as_str()) {
