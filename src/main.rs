@@ -10,7 +10,7 @@ use crate::display::{Display, OutputFormat};
 use crate::errors::TotpError;
 use crate::generator::Generator;
 use crate::storage::{Storage, Token};
-use chrono::NaiveDateTime;
+use chrono::{DateTime, FixedOffset, NaiveDateTime};
 use clap::{Parser, Subcommand};
 use rpassword::read_password;
 use std::io::Write;
@@ -62,6 +62,21 @@ enum Commands {
         #[clap(short, long, default_value = "long")]
         format: OutputFormat,
     },
+    /// Check an OTP
+    Check {
+        /// Secret token for key
+        #[clap(short, long)]
+        token: Token,
+        /// The generated OTP
+        #[clap(short, long)]
+        otp: String,
+        /// The start time
+        #[clap(short, long)]
+        start: DateTime<FixedOffset>,
+        /// Range in minutes (applies before and after the start time)
+        #[clap(short, long, default_value = "1")]
+        range: u64,
+    },
 }
 
 fn main() -> Result<(), TotpError> {
@@ -90,6 +105,23 @@ fn main() -> Result<(), TotpError> {
         } => {
             let display = Display { storage };
             display.render(account, time, format, repeat)?;
+        }
+        Commands::Check {
+            token,
+            otp,
+            start,
+            range,
+        } => {
+            let generator = Generator::new(token)?;
+            let output = generator.check_range(otp, start.timestamp() as u64, *range)?;
+            let local_date = DateTime::<FixedOffset>::from_utc(output, start.offset().clone());
+            println!(
+                "OTP {}\nValid At:\n{} UTC\n{} {}",
+                otp,
+                output,
+                local_date.naive_local(),
+                start.offset()
+            );
         }
     }
     Ok(())

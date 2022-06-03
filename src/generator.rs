@@ -1,5 +1,6 @@
 use crate::errors::TotpError;
 use crate::Token;
+use chrono::NaiveDateTime;
 use totp_rs::{Algorithm, TOTP};
 
 pub struct Generator<'a> {
@@ -19,8 +20,26 @@ impl<'a> Generator<'a> {
         Ok((self.totp.generate(time), rounded_up))
     }
 
-    pub fn check(&self, code: String, time: Option<u64>) -> bool {
+    pub fn check_range(
+        &self,
+        code: &String,
+        time: u64,
+        range_in_minutes: u64,
+    ) -> Result<NaiveDateTime, TotpError> {
+        let range = range_in_minutes * 60;
+        let start = time - range;
+        let end = time + range;
+        let mut i = start;
+        while i <= end {
+            if self.check(code, Some(i)) {
+                return Ok(NaiveDateTime::from_timestamp(i as i64, 0));
+            }
+            i = i + 30;
+        }
+        Err(TotpError::InvalidOtpForRange)
+    }
+    pub fn check(&self, code: &String, time: Option<u64>) -> bool {
         let time = time.unwrap_or(chrono::Utc::now().timestamp() as u64);
-        self.totp.check(&code, time)
+        self.totp.check(code, time)
     }
 }
