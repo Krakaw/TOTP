@@ -13,6 +13,8 @@ use std::str::FromStr;
 use std::thread::sleep;
 use std::time::{Duration, Instant};
 use std::{error::Error, io};
+use tui::layout::Direction;
+use tui::widgets::Paragraph;
 use tui::{
     backend::{Backend, CrosstermBackend},
     layout::{Constraint, Layout},
@@ -23,6 +25,7 @@ use tui::{
 
 pub struct UiTable {
     pub storage: Storage,
+    filter: String,
     state: TableState,
     items: Vec<Vec<String>>,
 }
@@ -41,6 +44,7 @@ impl UiTable {
             storage,
             state: TableState::default(),
             items: vec![],
+            filter: String::new(),
         };
         let res = run_app(&mut terminal, ui_table, tick_rate);
 
@@ -74,10 +78,10 @@ impl UiTable {
     pub fn next(&mut self) {
         let i = match self.state.selected() {
             Some(i) => {
-                if i >= self.items.len() - 1 {
+                if self.items.len() > 0 && i >= self.items.len() - 1 {
                     0
                 } else {
-                    i + 1
+                    usize::min(i + 1, self.items.len() + 1)
                 }
             }
             None => 0,
@@ -88,10 +92,10 @@ impl UiTable {
     pub fn previous(&mut self) {
         let i = match self.state.selected() {
             Some(i) => {
-                if i == 0 {
+                if self.items.len() > 0 && i == 0 {
                     self.items.len() - 1
                 } else {
-                    i - 1
+                    usize::max(i, 1) - 1
                 }
             }
             None => 0,
@@ -115,14 +119,19 @@ fn run_app<B: Backend>(
         app.items = vec![];
         let mut items = vec![];
         for (account_name, token) in storage.clone() {
-            let generator = Generator::new(&token).unwrap();
-            let (totp, expiry) = generator.generate(None).unwrap();
-            let account_name = account_name.clone();
-            let vec1 = vec![account_name, totp, format!("{}", expiry)];
-            items.push(vec1);
+            if app.filter.is_empty()
+                || account_name
+                    .to_lowercase()
+                    .contains(&app.filter.to_lowercase())
+            {
+                let generator = Generator::new(&token).unwrap();
+                let (totp, expiry) = generator.generate(None).unwrap();
+                let account_name = account_name.clone();
+                let vec1 = vec![account_name, totp, format!("{}", expiry)];
+                items.push(vec1);
+            }
         }
-        app.update_items(items);
-        terminal.draw(|f| ui(f, &mut app))?;
+
         let timeout = tick_rate
             .checked_sub(last_tick.elapsed())
             .unwrap_or_else(|| Duration::from_secs(0));
@@ -130,21 +139,26 @@ fn run_app<B: Backend>(
             if let Event::Key(key) = event::read()? {
                 let code = key.code;
                 let modifiers = key.modifiers;
-                if KeyCode::Char('q') == code
-                    || (KeyCode::Char('c'), KeyModifiers::CONTROL) == (code, modifiers)
-                {
-                    return Ok(());
-                }
+
                 match (code, modifiers) {
-                    (KeyCode::Char('q'), _) | (KeyCode::Char('c'), KeyModifiers::CONTROL) => {
+                    (KeyCode::Esc, _) | (KeyCode::Char('c'), KeyModifiers::CONTROL) => {
                         return Ok(())
                     }
                     (KeyCode::Down, _) => app.next(),
                     (KeyCode::Up, _) => app.previous(),
+                    (KeyCode::Backspace, KeyModifiers::NONE) => {
+                        app.filter.pop();
+                    }
+                    (KeyCode::Char(c), KeyModifiers::NONE) => {
+                        app.filter.push(c);
+                    }
                     _ => {}
                 }
             }
         }
+
+        app.update_items(items);
+        terminal.draw(|f| ui(f, &mut app))?;
         if last_tick.elapsed() >= tick_rate {
             last_tick = Instant::now();
         }
@@ -153,10 +167,15 @@ fn run_app<B: Backend>(
 
 fn ui<B: Backend>(f: &mut Frame<B>, app: &mut UiTable) {
     let rects = Layout::default()
-        .constraints([Constraint::Percentage(100)].as_ref())
-        .margin(5)
+        .direction(Direction::Vertical)
+        .constraints([Constraint::Length(3), Constraint::Min(1)].as_ref())
+        .margin(1)
         .split(f.size());
 
+    let input = Paragraph::new(app.filter.as_ref())
+        .style(Style::default().fg(Color::Yellow))
+        .block(Block::default().borders(Borders::ALL).title("Filter"));
+    f.render_widget(input, rects[0]);
     let selected_style = Style::default().add_modifier(Modifier::REVERSED);
     let normal_style = Style::default().bg(Color::Gray);
     let header_cells = ["Account", "OTP", "Expires In"]
@@ -200,5 +219,5 @@ fn ui<B: Backend>(f: &mut Frame<B>, app: &mut UiTable) {
             Constraint::Percentage(45),
             Constraint::Percentage(10),
         ]);
-    f.render_stateful_widget(t, rects[0], &mut app.state);
+    f.render_stateful_widget(t, rects[1], &mut app.state);
 }
