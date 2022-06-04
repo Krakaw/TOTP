@@ -5,11 +5,13 @@ mod encryption;
 mod errors;
 mod generator;
 mod storage;
+mod ui;
 
 use crate::display::{Display, OutputFormat};
 use crate::errors::TotpError;
 use crate::generator::Generator;
 use crate::storage::{Storage, Token};
+use crate::ui::table::UiTable;
 use chrono::{DateTime, FixedOffset, NaiveDateTime};
 use clap::{Parser, Subcommand};
 use rpassword::read_password;
@@ -47,6 +49,8 @@ enum Commands {
         #[clap(short, long)]
         account: String,
     },
+    /// Run in interactive mode
+    Interactive {},
     /// Generate an OTP
     Generate {
         /// Account name
@@ -122,6 +126,9 @@ fn main() -> Result<(), TotpError> {
                 local_date.naive_local(),
                 start.offset()
             );
+        }
+        Commands::Interactive {} => {
+            let ui = UiTable::new(storage)?;
         }
     }
     Ok(())

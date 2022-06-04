@@ -16,6 +16,7 @@ pub enum TotpError {
     Utf8(String),
     StdIO(String),
     InvalidOtpForRange,
+    Ui(String),
 }
 
 impl Error for TotpError {}
