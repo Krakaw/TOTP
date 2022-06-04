@@ -1,6 +1,7 @@
 use crate::storage::AccountName;
 use crate::{Generator, Storage, Token, TotpError};
 use chrono::NaiveDateTime;
+use crossterm::event::KeyModifiers;
 use crossterm::{
     event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode},
     execute,
@@ -69,6 +70,34 @@ impl UiTable {
             self.items.push(item);
         }
     }
+
+    pub fn next(&mut self) {
+        let i = match self.state.selected() {
+            Some(i) => {
+                if i >= self.items.len() - 1 {
+                    0
+                } else {
+                    i + 1
+                }
+            }
+            None => 0,
+        };
+        self.state.select(Some(i));
+    }
+
+    pub fn previous(&mut self) {
+        let i = match self.state.selected() {
+            Some(i) => {
+                if i == 0 {
+                    self.items.len() - 1
+                } else {
+                    i - 1
+                }
+            }
+            None => 0,
+        };
+        self.state.select(Some(i));
+    }
 }
 
 fn run_app<B: Backend>(
@@ -99,22 +128,26 @@ fn run_app<B: Backend>(
             .unwrap_or_else(|| Duration::from_secs(0));
         if crossterm::event::poll(timeout)? {
             if let Event::Key(key) = event::read()? {
-                if let KeyCode::Char('q') = key.code {
+                let code = key.code;
+                let modifiers = key.modifiers;
+                if KeyCode::Char('q') == code
+                    || (KeyCode::Char('c'), KeyModifiers::CONTROL) == (code, modifiers)
+                {
                     return Ok(());
+                }
+                match (code, modifiers) {
+                    (KeyCode::Char('q'), _) | (KeyCode::Char('c'), KeyModifiers::CONTROL) => {
+                        return Ok(())
+                    }
+                    (KeyCode::Down, _) => app.next(),
+                    (KeyCode::Up, _) => app.previous(),
+                    _ => {}
                 }
             }
         }
         if last_tick.elapsed() >= tick_rate {
             last_tick = Instant::now();
         }
-        // if let Event::Key(key) = event::read()? {
-        //     match key.code {
-        //         KeyCode::Char('q') => return Ok(()),
-        //         // KeyCode::Down => app.next(),
-        //         // KeyCode::Up => app.previous(),
-        //         _ => {}
-        //     }
-        // }
     }
 }
 
@@ -163,9 +196,9 @@ fn ui<B: Backend>(f: &mut Frame<B>, app: &mut UiTable) {
         .highlight_style(selected_style)
         .highlight_symbol(">> ")
         .widths(&[
-            Constraint::Length(50),
-            Constraint::Length(30),
-            Constraint::Min(10),
+            Constraint::Percentage(45),
+            Constraint::Percentage(45),
+            Constraint::Percentage(10),
         ]);
     f.render_stateful_widget(t, rects[0], &mut app.state);
 }
