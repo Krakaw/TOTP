@@ -147,9 +147,7 @@ fn run_app<B: Backend>(
                 let modifiers = key.modifiers;
 
                 match (code, modifiers) {
-                    (KeyCode::Esc, _) => {
-                        app.filter.clear();
-                    }
+                    (KeyCode::Esc, _) => app.filter.clear(),
                     (KeyCode::Char('c'), KeyModifiers::CONTROL) => return Ok(()),
                     (KeyCode::Down, _) => app.next(),
                     (KeyCode::Up, _) => app.previous(),
