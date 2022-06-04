@@ -5,11 +5,13 @@ mod encryption;
 mod errors;
 mod generator;
 mod storage;
+mod ui;
 
 use crate::display::{Display, OutputFormat};
 use crate::errors::TotpError;
 use crate::generator::Generator;
 use crate::storage::{Storage, Token};
+use crate::ui::table::UiTable;
 use chrono::{DateTime, FixedOffset, NaiveDateTime};
 use clap::{Parser, Subcommand};
 use rpassword::read_password;
@@ -26,7 +28,7 @@ struct Cli {
     #[clap(short, long, default_value = ".storage.txt")]
     filename: String,
     #[clap(subcommand)]
-    command: Commands,
+    command: Option<Commands>,
 }
 
 #[derive(Subcommand, Debug)]
@@ -47,6 +49,8 @@ enum Commands {
         #[clap(short, long)]
         account: String,
     },
+    /// Run in interactive mode
+    Interactive {},
     /// Generate an OTP
     Generate {
         /// Account name
@@ -90,7 +94,11 @@ fn main() -> Result<(), TotpError> {
         }
     };
     let mut storage = Storage::new(password, Some(cli.filename))?;
-    match &cli.command {
+    let command = match &cli.command {
+        Some(command) => command,
+        None => &Commands::Interactive {},
+    };
+    match command {
         Commands::Add { account, secret } => {
             storage.add_account(account.to_owned(), secret.to_owned())?;
         }
@@ -122,6 +130,9 @@ fn main() -> Result<(), TotpError> {
                 local_date.naive_local(),
                 start.offset()
             );
+        }
+        Commands::Interactive {} => {
+            let ui = UiTable::new(storage)?;
         }
     }
     Ok(())

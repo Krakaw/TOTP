@@ -44,6 +44,7 @@ impl FromStr for Token {
     }
 }
 
+#[derive(Clone)]
 pub struct Storage {
     accounts: HashMap<AccountName, Token>,
     password: String,
