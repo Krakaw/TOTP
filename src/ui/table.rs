@@ -1,6 +1,7 @@
 use crate::storage::AccountName;
 use crate::{Generator, Storage, Token, TotpError};
 use chrono::NaiveDateTime;
+use cli_clipboard::set_contents;
 use crossterm::event::KeyModifiers;
 use crossterm::{
     event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode},
@@ -81,7 +82,7 @@ impl UiTable {
                 if self.items.len() > 0 && i >= self.items.len() - 1 {
                     0
                 } else {
-                    usize::min(i + 1, self.items.len() + 1)
+                    usize::min(i + 1, self.items.len())
                 }
             }
             None => 0,
@@ -102,6 +103,12 @@ impl UiTable {
         };
         self.state.select(Some(i));
     }
+
+    pub fn set_clipboard(&mut self) {
+        if let Some(i) = self.state.selected() {
+            set_contents(self.items[i][1].to_string());
+        }
+    }
 }
 
 fn run_app<B: Backend>(
@@ -116,7 +123,6 @@ fn run_app<B: Backend>(
         .collect::<Vec<(AccountName, Token)>>();
     let mut last_tick = Instant::now();
     loop {
-        app.items = vec![];
         let mut items = vec![];
         for (account_name, token) in storage.clone() {
             if app.filter.is_empty()
@@ -141,23 +147,30 @@ fn run_app<B: Backend>(
                 let modifiers = key.modifiers;
 
                 match (code, modifiers) {
-                    (KeyCode::Esc, _) | (KeyCode::Char('c'), KeyModifiers::CONTROL) => {
-                        return Ok(())
+                    (KeyCode::Esc, _) => {
+                        app.filter.clear();
                     }
+                    (KeyCode::Char('c'), KeyModifiers::CONTROL) => return Ok(()),
                     (KeyCode::Down, _) => app.next(),
                     (KeyCode::Up, _) => app.previous(),
+                    (KeyCode::Enter, _) => app.set_clipboard(),
                     (KeyCode::Backspace, KeyModifiers::NONE) => {
                         app.filter.pop();
+                        app.state.select(None);
                     }
                     (KeyCode::Char(c), KeyModifiers::NONE) => {
                         app.filter.push(c);
+                        app.state.select(None);
                     }
                     _ => {}
                 }
             }
         }
-
+        let items_empty = items.is_empty();
         app.update_items(items);
+        if !items_empty && app.state.selected().is_none() {
+            app.state.select(Some(0));
+        }
         terminal.draw(|f| ui(f, &mut app))?;
         if last_tick.elapsed() >= tick_rate {
             last_tick = Instant::now();
@@ -207,7 +220,7 @@ fn ui<B: Backend>(f: &mut Frame<B>, app: &mut UiTable) {
             }
             cell
         });
-        Row::new(cells).height(height as u16).bottom_margin(1)
+        Row::new(cells).height(height as u16).bottom_margin(0)
     });
     let t = Table::new(rows)
         .header(header)
