@@ -64,12 +64,12 @@ impl Storage {
 
     pub fn get_account_token(&self, account: AccountName) -> Result<Token, TotpError> {
         if !self.accounts.contains_key(&account) {
-            return Err(TotpError::AccountNotFound(account.to_string()));
+            return Err(TotpError::AccountNotFound(account));
         }
         self.accounts
             .get(&account)
-            .map(|t| t.clone())
-            .ok_or(TotpError::AccountNotFound(account.to_string()))
+            .cloned()
+            .ok_or(TotpError::AccountNotFound(account))
     }
 
     pub fn add_account(&mut self, account: AccountName, token: Token) -> Result<(), TotpError> {
@@ -79,7 +79,7 @@ impl Storage {
 
     pub fn remove_account(&mut self, account: AccountName) -> Result<(), TotpError> {
         if !self.accounts.contains_key(&account) {
-            return Err(TotpError::AccountNotFound(account.to_string()));
+            return Err(TotpError::AccountNotFound(account));
         }
 
         let _ = self.accounts.remove(&account);
@@ -99,26 +99,23 @@ impl Storage {
     }
 
     pub fn load_file(&mut self) -> Result<(), TotpError> {
-        match fs::read_to_string(&self.filename) {
-            Ok(file_contents) => {
-                let file_contents: Vec<&str> = file_contents.split(':').collect();
-                let content = file_contents[0];
-                let iv = file_contents[1].trim();
-                let encryption = Encryption::default();
-                let file_contents = encryption.decrypt(content, &self.password, iv)?;
-                for (account, token) in
-                    file_contents
-                        .split('\n')
-                        .filter(|l| l.trim() != "")
-                        .map(|line| {
-                            let parts = line.split(':').collect::<Vec<&str>>();
-                            (parts[0].to_string(), parts[1].to_string().parse::<Token>())
-                        })
-                {
-                    self.accounts.insert(account, token?);
-                }
+        if let Ok(file_contents) = fs::read_to_string(&self.filename) {
+            let file_contents: Vec<&str> = file_contents.split(':').collect();
+            let content = file_contents[0];
+            let iv = file_contents[1].trim();
+            let encryption = Encryption::default();
+            let file_contents = encryption.decrypt(content, &self.password, iv)?;
+            for (account, token) in
+                file_contents
+                    .split('\n')
+                    .filter(|l| l.trim() != "")
+                    .map(|line| {
+                        let parts = line.split(':').collect::<Vec<&str>>();
+                        (parts[0].to_string(), parts[1].to_string().parse::<Token>())
+                    })
+            {
+                self.accounts.insert(account, token?);
             }
-            Err(_) => (),
         };
 
         Ok(())

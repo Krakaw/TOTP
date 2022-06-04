@@ -5,7 +5,6 @@ use std::io::Write;
 use std::str::FromStr;
 use std::thread::sleep;
 use std::time::Duration;
-use std::{error::Error, io};
 
 #[derive(Debug)]
 pub enum OutputFormat {

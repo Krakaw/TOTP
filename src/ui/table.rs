@@ -1,6 +1,5 @@
 use crate::storage::AccountName;
 use crate::{Generator, Storage, Token, TotpError};
-use chrono::NaiveDateTime;
 use cli_clipboard::set_contents;
 use crossterm::event::KeyModifiers;
 use crossterm::{
@@ -8,12 +7,9 @@ use crossterm::{
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
-use std::io::stdout;
-use std::io::Write;
+use std::io;
 use std::str::FromStr;
-use std::thread::sleep;
 use std::time::{Duration, Instant};
-use std::{error::Error, io};
 use tui::layout::Direction;
 use tui::widgets::Paragraph;
 use tui::{
@@ -31,9 +27,20 @@ pub struct UiTable {
     items: Vec<Vec<String>>,
 }
 
+fn reset_terminal() {
+    disable_raw_mode().unwrap();
+    crossterm::execute!(io::stdout(), LeaveAlternateScreen).unwrap();
+}
 impl UiTable {
-    pub fn new(storage: Storage) -> Result<(), TotpError> {
+    pub fn init(storage: Storage) -> Result<(), TotpError> {
+        let original_hook = std::panic::take_hook();
+
+        std::panic::set_hook(Box::new(move |panic| {
+            reset_terminal();
+            original_hook(panic);
+        }));
         // setup terminal
+
         enable_raw_mode().map_err(|e| TotpError::Ui(e.to_string()))?;
         let mut stdout = io::stdout();
         execute!(stdout, EnterAlternateScreen, EnableMouseCapture)
@@ -79,7 +86,7 @@ impl UiTable {
     pub fn next(&mut self) {
         let i = match self.state.selected() {
             Some(i) => {
-                if self.items.len() > 0 && i >= self.items.len() - 1 {
+                if !self.items.is_empty() && i >= self.items.len() - 1 {
                     0
                 } else {
                     usize::min(i + 1, self.items.len())
@@ -93,7 +100,7 @@ impl UiTable {
     pub fn previous(&mut self) {
         let i = match self.state.selected() {
             Some(i) => {
-                if self.items.len() > 0 && i == 0 {
+                if !self.items.is_empty() && i == 0 {
                     self.items.len() - 1
                 } else {
                     usize::max(i, 1) - 1
@@ -106,7 +113,7 @@ impl UiTable {
 
     pub fn set_clipboard(&mut self) {
         if let Some(i) = self.state.selected() {
-            set_contents(self.items[i][1].to_string());
+            set_contents(self.items[i][1].to_string()).expect("Failed to copy to clipboard");
         }
     }
 }

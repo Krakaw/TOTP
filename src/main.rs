@@ -132,7 +132,7 @@ fn main() -> Result<(), TotpError> {
             );
         }
         Commands::Interactive {} => {
-            let ui = UiTable::new(storage)?;
+            let _ui = UiTable::init(storage)?;
         }
     }
     Ok(())
