@@ -28,7 +28,7 @@ struct Cli {
     #[clap(short, long, default_value = ".storage.txt")]
     filename: String,
     #[clap(subcommand)]
-    command: Commands,
+    command: Option<Commands>,
 }
 
 #[derive(Subcommand, Debug)]
@@ -94,7 +94,11 @@ fn main() -> Result<(), TotpError> {
         }
     };
     let mut storage = Storage::new(password, Some(cli.filename))?;
-    match &cli.command {
+    let command = match &cli.command {
+        Some(command) => command,
+        None => &Commands::Interactive {},
+    };
+    match command {
         Commands::Add { account, secret } => {
             storage.add_account(account.to_owned(), secret.to_owned())?;
         }
