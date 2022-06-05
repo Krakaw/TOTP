@@ -31,7 +31,7 @@ impl TryFrom<String> for Token {
     type Error = TotpError;
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        let bytes = BASE32.decode(value.as_bytes())?;
+        let bytes = BASE32.decode(value.trim_end().as_bytes())?;
         Ok(Token(bytes))
     }
 }
@@ -40,7 +40,7 @@ impl FromStr for Token {
     type Err = TotpError;
 
     fn from_str(value: &str) -> Result<Self, Self::Err> {
-        Ok(Token(BASE32.decode(value.as_bytes())?))
+        Ok(Token(BASE32.decode(value.trim_end().as_bytes())?))
     }
 }
 
@@ -73,7 +73,7 @@ impl Storage {
     }
 
     pub fn add_account(&mut self, account: AccountName, token: Token) -> Result<(), TotpError> {
-        let _ = self.accounts.insert(account, token);
+        let _ = self.accounts.insert(account.trim().into(), token);
         self.save_file()
     }
 
@@ -89,7 +89,7 @@ impl Storage {
     pub fn save_file(&self) -> Result<(), TotpError> {
         let mut contents = String::new();
         for (account, token) in &self.accounts {
-            contents.push_str(&format!("{}:{}\n", account, token));
+            contents.push_str(&format!("{}|{}\n", account, token));
         }
         let encryption = Encryption::default();
         let (encrypted_content, iv) = encryption.encrypt(&contents, &self.password)?;
@@ -110,7 +110,7 @@ impl Storage {
                     .split('\n')
                     .filter(|l| l.trim() != "")
                     .map(|line| {
-                        let parts = line.split(':').collect::<Vec<&str>>();
+                        let parts = line.split('|').collect::<Vec<&str>>();
                         (parts[0].to_string(), parts[1].to_string().parse::<Token>())
                     })
             {

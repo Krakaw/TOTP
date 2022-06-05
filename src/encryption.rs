@@ -23,7 +23,8 @@ impl Encryption {
         while password.len() < cipher.key_len() {
             password.push(b'0');
         }
-        let content = content.to_owned() + format!("\n{}:{}", self.key, self.value).as_str();
+        let content =
+            content.trim_end().to_owned() + format!("\n{}:{}", self.key, self.value).as_str();
         let data = content.as_bytes();
         let key = password.as_slice();
 

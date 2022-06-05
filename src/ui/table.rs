@@ -144,7 +144,7 @@ fn run_app<B: Backend>(
                 items.push(vec1);
             }
         }
-
+        items.sort_by(|a, b| a[0].cmp(&b[0]));
         let timeout = tick_rate
             .checked_sub(last_tick.elapsed())
             .unwrap_or_else(|| Duration::from_secs(0));
