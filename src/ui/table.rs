@@ -193,6 +193,12 @@ fn ui<B: Backend>(f: &mut Frame<B>, app: &mut UiTable) {
     let input = Paragraph::new(app.filter.as_ref())
         .style(Style::default().fg(Color::Yellow))
         .block(Block::default().borders(Borders::ALL).title("Filter"));
+    f.set_cursor(
+        // Put cursor past the end of the input text
+        rects[0].x + app.filter.len() as u16 + 1,
+        // Move one line down, from the border to the input line
+        rects[0].y + 1,
+    );
     f.render_widget(input, rects[0]);
     let selected_style = Style::default().add_modifier(Modifier::REVERSED);
     let normal_style = Style::default().bg(Color::Gray);
