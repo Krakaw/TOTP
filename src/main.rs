@@ -13,15 +13,11 @@ use crate::generator::Generator;
 use crate::storage::{Storage, Token};
 use crate::ui::app::App;
 use crate::ui::event_handler::{Event, EventHandler};
-use crate::ui::handler;
 use crate::ui::tui::Tui;
 use chrono::{DateTime, FixedOffset, NaiveDateTime};
 use clap::{Parser, Subcommand};
 use rpassword::read_password;
-use std::io;
 use std::io::Write;
-use tui::backend::CrosstermBackend;
-use tui::Terminal;
 
 /// A CLI and TUI TOTP manager
 #[derive(Parser, Debug)]
@@ -145,24 +141,7 @@ fn main() -> Result<(), TotpError> {
             }
         }
         Commands::Interactive => {
-            let mut app = App::new(storage)?;
-            let backend = CrosstermBackend::new(io::stdout());
-            let terminal = Terminal::new(backend)?;
-            let events = EventHandler::new(250)?;
-            let mut tui = Tui::new(terminal, events);
-
-            tui.init()?;
-            while app.state.running {
-                tui.draw(&mut app)?;
-                match tui.events.next()? {
-                    Event::Key(key_event) => {
-                        handler::handle_key_events(key_event, &mut tui, &mut app)?
-                    }
-                    Event::Tick => app.tick(),
-                    _ => {}
-                }
-            }
-            tui.exit()?;
+            ui::init(storage)?;
         }
     }
     Ok(())
