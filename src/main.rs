@@ -23,7 +23,7 @@ use std::io::Write;
 use tui::backend::CrosstermBackend;
 use tui::Terminal;
 
-/// Generate TOTP codes
+/// A CLI and TUI TOTP manager
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
 struct Cli {
@@ -55,8 +55,8 @@ enum Commands {
         #[clap(short, long)]
         account: String,
     },
-    /// Run in interactive mode
-    Interactive {},
+    /// Run in interactive mode [default]
+    Interactive,
     /// Generate an OTP
     Generate {
         /// Account name
@@ -87,6 +87,8 @@ enum Commands {
         #[clap(short, long, default_value = "1")]
         range: u64,
     },
+    /// Dump the config file
+    Dump,
 }
 
 fn main() -> Result<(), TotpError> {
@@ -137,7 +139,12 @@ fn main() -> Result<(), TotpError> {
                 start.offset()
             );
         }
-        Commands::Interactive {} => {
+        Commands::Dump => {
+            for (a, t) in storage.to_iter() {
+                println!("{}\t{}", a, t);
+            }
+        }
+        Commands::Interactive => {
             let mut app = App::new(storage)?;
             let backend = CrosstermBackend::new(io::stdout());
             let terminal = Terminal::new(backend)?;

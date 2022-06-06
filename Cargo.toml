@@ -1,6 +1,6 @@
 [package]
 name = "totp"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 authors = ["Krakaw <41575888+Krakaw@users.noreply.github.com>"]
 
@@ -14,3 +14,5 @@ rpassword = "2.0.0"
 tui = "0.18"
 crossterm = "0.23"
 cli-clipboard = "0.2.1"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0.81"

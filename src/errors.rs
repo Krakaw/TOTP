@@ -19,6 +19,7 @@ pub enum TotpError {
     InvalidOtpForRange,
     Ui(String),
     UiEvent(String),
+    Json(String),
 }
 
 impl Error for TotpError {}
@@ -62,5 +63,11 @@ impl From<RecvError> for TotpError {
 impl From<std::io::Error> for TotpError {
     fn from(e: std::io::Error) -> Self {
         TotpError::Ui(e.to_string())
+    }
+}
+
+impl From<serde_json::Error> for TotpError {
+    fn from(e: serde_json::Error) -> Self {
+        TotpError::Json(e.to_string())
     }
 }

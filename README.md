@@ -6,13 +6,17 @@ If you don't provide the -p argument it will expect the password on stdin.
 
 Running `totp` without any arguments will run the TUI interface.
 
+![](demo/demo.gif)
 ## Usage
 
 ```bash
 totp --help
-totp 0.1.0
+```
+
+```
+totp 0.1.1
 Krakaw <41575888+Krakaw@users.noreply.github.com>
-Generate TOTP codes
+A CLI and TUI TOTP manager
 
 USAGE:
     totp [OPTIONS] <SUBCOMMAND>
@@ -24,11 +28,13 @@ OPTIONS:
     -V, --version                Print version information
 
 SUBCOMMANDS:
-    add         Add a new account
-    check       Check an OTP
-    delete      Delete an account
-    generate    Generate an OTP
-    help        Print this message or the help of the given subcommand(s)
+    add            Add a new account
+    check          Check an OTP
+    delete         Delete an account
+    generate       Generate an OTP
+    help           Print this message or the help of the given subcommand(s)
+    interactive    Run in interactive mode [default]
+
 ```
 
 ### Add accounts

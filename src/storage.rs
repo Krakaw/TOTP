@@ -1,5 +1,7 @@
 use crate::encryption::Encryption;
 use data_encoding::BASE32;
+use serde::{Deserialize, Serialize};
+use serde_json::json;
 use std::collections::hash_map::Iter;
 use std::collections::HashMap;
 use std::fmt;
@@ -11,7 +13,7 @@ use crate::errors::TotpError;
 
 pub type AccountName = String;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Token(Vec<u8>);
 
 impl Display for Token {
@@ -42,6 +44,11 @@ impl FromStr for Token {
     fn from_str(value: &str) -> Result<Self, Self::Err> {
         Ok(Token(BASE32.decode(value.trim_end().as_bytes())?))
     }
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct Contents {
+    pub accounts: HashMap<AccountName, Token>,
 }
 
 #[derive(Clone)]
@@ -102,6 +109,10 @@ impl Storage {
         for (account, token) in &self.accounts {
             contents.push_str(&format!("{}|{}\n", account, token));
         }
+        let contents = Contents {
+            accounts: self.accounts.clone(),
+        };
+        let contents = json!(contents).to_string();
         let encryption = Encryption::default();
         let (encrypted_content, iv) = encryption.encrypt(&contents, &self.password)?;
         fs::write(&self.filename, format!("{}:{}\n", encrypted_content, iv))
@@ -116,17 +127,8 @@ impl Storage {
             let iv = file_contents[1].trim();
             let encryption = Encryption::default();
             let file_contents = encryption.decrypt(content, &self.password, iv)?;
-            for (account, token) in
-                file_contents
-                    .split('\n')
-                    .filter(|l| l.trim() != "")
-                    .map(|line| {
-                        let parts = line.split('|').collect::<Vec<&str>>();
-                        (parts[0].to_string(), parts[1].to_string().parse::<Token>())
-                    })
-            {
-                self.accounts.insert(account, token?);
-            }
+            let accounts: Contents = serde_json::from_str(&file_contents)?;
+            self.accounts = accounts.accounts;
         };
 
         Ok(())

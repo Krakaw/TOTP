@@ -13,7 +13,6 @@ pub fn handle_key_events<B: Backend>(
 
     match (code, modifiers) {
         (KeyCode::Char('c'), KeyModifiers::CONTROL) => app.state.running = false,
-
         (KeyCode::Down, _) => app.move_down(),
         (KeyCode::Up, _) => app.move_up(),
         (KeyCode::Enter, _) => app.set_clipboard(),
