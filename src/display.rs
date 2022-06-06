@@ -45,7 +45,7 @@ impl Display {
                     true
                 }
             }) {
-                let generator = Generator::new(token)?;
+                let generator = Generator::new(token.to_owned())?;
                 let (totp, expiry) = generator.generate(time.map(|t| t.timestamp() as u64))?;
                 let colour = if expiry > 15 {
                     "\x1b[92m" // Green

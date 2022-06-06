@@ -18,6 +18,7 @@ pub enum Event {
     Tick,
 }
 
+#[allow(dead_code)]
 #[derive(Debug)]
 pub struct EventHandler {
     /// Event sender.

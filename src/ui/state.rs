@@ -1,5 +1,5 @@
 use crate::storage::AccountName;
-use crate::{Generator, Storage};
+use crate::{Generator, Storage, TotpError};
 
 pub enum InputMode {
     Normal,
@@ -12,28 +12,35 @@ impl Default for InputMode {
     }
 }
 
-pub struct State<'a> {
-    storage: Storage,
+pub struct State {
     pub input_mode: InputMode,
     pub filter: String,
-    pub items: Vec<(AccountName, Generator<'a>)>,
+    pub items: Vec<(AccountName, Generator)>,
+    pub display_otps: Vec<(String, String, u64)>,
+    pub running: bool,
 }
 
-impl<'a> Default for State<'a> {
+impl Default for State {
     fn default() -> Self {
         Self {
             input_mode: InputMode::default(),
             filter: String::new(),
             items: vec![],
-            storage: Storage::default(),
+            display_otps: vec![],
+            running: true,
         }
     }
 }
-impl<'a> State<'a> {
-    pub fn new(storage: Storage) -> Self {
-        Self {
-            storage,
-            ..State::default()
+impl State {
+    pub fn new(storage: Storage) -> Result<Self, TotpError> {
+        let mut items = vec![];
+        for (account_name, token) in storage.accounts.iter() {
+            items.push((account_name.clone(), Generator::new(token.to_owned())?));
         }
+        items.sort_by(|a, b| a.0.cmp(&b.0));
+        Ok(Self {
+            items,
+            ..State::default()
+        })
     }
 }

@@ -1,5 +1,5 @@
-mod app;
-mod event_handler;
+pub mod app;
+pub mod event_handler;
+pub mod handler;
 mod state;
-pub mod table;
 pub mod tui;

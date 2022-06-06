@@ -11,11 +11,17 @@ use crate::display::{Display, OutputFormat};
 use crate::errors::TotpError;
 use crate::generator::Generator;
 use crate::storage::{Storage, Token};
-use crate::ui::table::UiTable;
+use crate::ui::app::App;
+use crate::ui::event_handler::{Event, EventHandler};
+use crate::ui::handler;
+use crate::ui::tui::Tui;
 use chrono::{DateTime, FixedOffset, NaiveDateTime};
 use clap::{Parser, Subcommand};
 use rpassword::read_password;
+use std::io;
 use std::io::Write;
+use tui::backend::CrosstermBackend;
+use tui::Terminal;
 
 /// Generate TOTP codes
 #[derive(Parser, Debug)]
@@ -120,7 +126,7 @@ fn main() -> Result<(), TotpError> {
             start,
             range,
         } => {
-            let generator = Generator::new(token)?;
+            let generator = Generator::new(token.to_owned())?;
             let output = generator.check_range(otp, start.timestamp() as u64, *range)?;
             let local_date = DateTime::<FixedOffset>::from_utc(output, *start.offset());
             println!(
@@ -132,7 +138,24 @@ fn main() -> Result<(), TotpError> {
             );
         }
         Commands::Interactive {} => {
-            let _ui = UiTable::init(storage)?;
+            let mut app = App::new(storage)?;
+            let backend = CrosstermBackend::new(io::stdout());
+            let terminal = Terminal::new(backend)?;
+            let events = EventHandler::new(250)?;
+            let mut tui = Tui::new(terminal, events);
+
+            tui.init()?;
+            while app.state.running {
+                tui.draw(&mut app)?;
+                match tui.events.next()? {
+                    Event::Key(key_event) => {
+                        handler::handle_key_events(key_event, &mut tui, &mut app)?
+                    }
+                    Event::Tick => app.tick(),
+                    _ => {}
+                }
+            }
+            tui.exit()?;
         }
     }
     Ok(())
