@@ -51,6 +51,16 @@ pub struct Storage {
     filename: String,
 }
 
+impl Default for Storage {
+    fn default() -> Self {
+        Self {
+            accounts: HashMap::new(),
+            password: String::new(),
+            filename: ".storage.txt".to_string(),
+        }
+    }
+}
+
 impl Storage {
     pub fn new(password: String, filename: Option<String>) -> Result<Self, TotpError> {
         let mut storage = Self {
