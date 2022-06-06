@@ -2,6 +2,7 @@ use data_encoding::DecodeError;
 use openssl::error::ErrorStack;
 use std::error::Error;
 use std::fmt::{Display, Formatter};
+use std::sync::mpsc::RecvError;
 use totp_rs::TotpUrlError;
 
 #[derive(Debug)]
@@ -17,6 +18,7 @@ pub enum TotpError {
     StdIO(String),
     InvalidOtpForRange,
     Ui(String),
+    UiEvent(String),
 }
 
 impl Error for TotpError {}
@@ -48,5 +50,17 @@ impl From<clap::Error> for TotpError {
 impl From<ErrorStack> for TotpError {
     fn from(e: ErrorStack) -> Self {
         TotpError::Encryption(e.to_string())
+    }
+}
+
+impl From<RecvError> for TotpError {
+    fn from(e: RecvError) -> Self {
+        TotpError::UiEvent(e.to_string())
+    }
+}
+
+impl From<std::io::Error> for TotpError {
+    fn from(e: std::io::Error) -> Self {
+        TotpError::Ui(e.to_string())
     }
 }

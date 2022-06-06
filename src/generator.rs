@@ -3,12 +3,13 @@ use crate::Token;
 use chrono::NaiveDateTime;
 use totp_rs::{Algorithm, TOTP};
 
-pub struct Generator<'a> {
-    totp: TOTP<&'a Token>,
+#[derive(Clone)]
+pub struct Generator {
+    totp: TOTP<Token>,
 }
 
-impl<'a> Generator<'a> {
-    pub fn new(token: &'a Token) -> Result<Self, TotpError> {
+impl Generator {
+    pub fn new(token: Token) -> Result<Self, TotpError> {
         let totp = TOTP::new(Algorithm::SHA1, 6, 1, 30, token, None, "".to_string())?;
         Ok(Self { totp })
     }
@@ -53,7 +54,7 @@ mod tests {
     #[test]
     fn generate() {
         let secret = Token::from_str("JBSWY3DPEHPK3PXP").unwrap();
-        let generator = Generator::new(&secret).unwrap();
+        let generator = Generator::new(secret).unwrap();
         let (token, _) = generator.generate(Some(1654258053)).unwrap();
         assert_eq!(token, "975361");
     }
@@ -61,7 +62,7 @@ mod tests {
     #[test]
     fn check_range() {
         let secret = Token::from_str("JBSWY3DPEHPK3PXP").unwrap();
-        let generator = Generator::new(&secret).unwrap();
+        let generator = Generator::new(secret).unwrap();
         let generated_time = NaiveDateTime::from_str("2022-06-03T08:00:00").unwrap();
         let (token, _) = generator
             .generate(Some(generated_time.timestamp() as u64))

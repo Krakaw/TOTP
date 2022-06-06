@@ -46,9 +46,19 @@ impl FromStr for Token {
 
 #[derive(Clone)]
 pub struct Storage {
-    accounts: HashMap<AccountName, Token>,
+    pub accounts: HashMap<AccountName, Token>,
     password: String,
     filename: String,
+}
+
+impl Default for Storage {
+    fn default() -> Self {
+        Self {
+            accounts: HashMap::new(),
+            password: String::new(),
+            filename: ".storage.txt".to_string(),
+        }
+    }
 }
 
 impl Storage {
@@ -62,6 +72,7 @@ impl Storage {
         Ok(storage)
     }
 
+    #[allow(dead_code)]
     pub fn get_account_token(&self, account: AccountName) -> Result<Token, TotpError> {
         if !self.accounts.contains_key(&account) {
             return Err(TotpError::AccountNotFound(account));
