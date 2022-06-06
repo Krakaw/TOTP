@@ -4,6 +4,7 @@ A CLI tool for managing TOTP accounts.
 All accounts are stored in a local file that's encrypted with the provided password.
 If you don't provide the -p argument it will expect the password on stdin.
 
+Running `totp` without any arguments will run the TUI interface.
 
 ## Usage
 
@@ -49,3 +50,17 @@ SUBCOMMANDS:
 ### Check an OTP against a secret for a specific time within a range
 
     totp -p password check -t TokenSecretKey -o 123456 -s 2022-06-03T08:35:00+02:00 -r 10  
+
+## Key Bindings
+
+### User Interface
+
+#### Global Key Bindings
+| Key Binding | Action                  |
+|-------------|-------------------------|
+| `/`         | Switch to insert mode   |
+| `Esc`       | Switch to normal mode   |
+| `Ctrl-c`    | Exit                    |
+| `Down`      | Select next account     |
+| `Up`        | Select previous account |
+| `Enter`     | Copy OTP to clipboard   |
