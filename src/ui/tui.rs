@@ -133,9 +133,9 @@ fn render_otps<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>, rect: Rect) 
         .highlight_style(selected_style)
         .highlight_symbol(">> ")
         .widths(&[
-            Constraint::Percentage(45),
-            Constraint::Percentage(45),
-            Constraint::Percentage(10),
+            Constraint::Percentage(75),
+            Constraint::Length(6),
+            Constraint::Min(6),
         ]);
     if !app.state.items.is_empty() && app.table_state.selected().is_none() {
         app.table_state.select(Some(0));
