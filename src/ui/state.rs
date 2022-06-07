@@ -1,4 +1,4 @@
-use crate::storage::AccountName;
+use crate::storage::accounts::AccountName;
 use crate::{Generator, Storage, TotpError};
 
 pub enum InputMode {

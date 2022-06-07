@@ -1,4 +1,4 @@
-use crate::encryption::Encryption;
+use crate::storage::encryption::Encryption;
 use data_encoding::BASE32;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -143,7 +143,7 @@ impl Storage {
 
 #[cfg(test)]
 mod tests {
-    use crate::{Storage, Token};
+    use crate::storage::accounts::{Storage, Token};
     use std::str::FromStr;
     use std::time::{SystemTime, UNIX_EPOCH};
 

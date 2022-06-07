@@ -1,21 +1,19 @@
 extern crate core;
-
 mod display;
-mod encryption;
 mod errors;
-mod generator;
+mod otp;
 mod storage;
 mod ui;
 
 use crate::display::{Display, OutputFormat};
 use crate::errors::TotpError;
-use crate::generator::Generator;
-use crate::storage::{Storage, Token};
+use crate::storage::accounts::{Storage, Token};
 use crate::ui::app::App;
 use crate::ui::event_handler::{Event, EventHandler};
 use crate::ui::tui::Tui;
 use chrono::{DateTime, FixedOffset, NaiveDateTime};
 use clap::{Parser, Subcommand};
+use otp::generator::Generator;
 use rpassword::read_password;
 use std::io::Write;
 

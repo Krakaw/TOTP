@@ -8,6 +8,7 @@ pub mod event_handler;
 pub mod handler;
 mod state;
 pub mod tui;
+pub mod widgets;
 
 pub fn init(storage: Storage) -> Result<(), TotpError> {
     let mut app = App::new(storage)?;
