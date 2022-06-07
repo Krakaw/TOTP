@@ -13,7 +13,7 @@ use crate::errors::TotpError;
 
 pub type AccountName = String;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Token(Vec<u8>);
 
 impl Display for Token {
@@ -33,7 +33,7 @@ impl TryFrom<String> for Token {
     type Error = TotpError;
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        let bytes = BASE32.decode(value.trim_end().as_bytes())?;
+        let bytes = BASE32.decode(value.trim_end().to_uppercase().as_bytes())?;
         Ok(Token(bytes))
     }
 }
@@ -42,7 +42,9 @@ impl FromStr for Token {
     type Err = TotpError;
 
     fn from_str(value: &str) -> Result<Self, Self::Err> {
-        Ok(Token(BASE32.decode(value.trim_end().as_bytes())?))
+        Ok(Token(
+            BASE32.decode(value.trim_end().to_uppercase().as_bytes())?,
+        ))
     }
 }
 
@@ -155,6 +157,14 @@ mod tests {
     fn get_filename() -> String {
         format!(".test.storage.{}.txt", rand())
     }
+
+    #[test]
+    fn tokens_ignore_case() {
+        let token_string = "jbswy3dpehpk3pxp";
+        let token: Token = token_string.parse().unwrap();
+        assert_eq!(token, Token::from_str("JBSWY3DPEHPK3PXP").unwrap());
+    }
+
     #[test]
     fn add_account() {
         let filename = get_filename();
