@@ -1,4 +1,5 @@
 extern crate core;
+mod api;
 mod display;
 mod errors;
 mod otp;
@@ -17,6 +18,7 @@ use otp::generator::Generator;
 use otp::token::Token;
 use rpassword::read_password;
 use std::io::Write;
+use std::net::SocketAddr;
 
 /// A CLI and TUI TOTP manager
 #[derive(Parser, Debug)]
@@ -96,10 +98,17 @@ enum Commands {
     },
     /// Dump the config file
     Dump,
+    /// Start an HTTP Server
+    Server {
+        /// Listening address
+        #[clap(short, long, default_value = "0.0.0.0:8080")]
+        listen: SocketAddr,
+    },
 }
 
 fn main() -> Result<(), TotpError> {
     let cli = Cli::parse();
+
     let password = match cli.password {
         Some(password) => password,
         None => {
@@ -165,6 +174,9 @@ fn main() -> Result<(), TotpError> {
         }
         Commands::Interactive => {
             ui::init(storage)?;
+        }
+        Commands::Server { listen } => {
+            api::server::Server::new(listen.clone(), storage)?.start()?;
         }
     }
     Ok(())

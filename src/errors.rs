@@ -20,6 +20,7 @@ pub enum TotpError {
     Ui(String),
     UiEvent(String),
     Json(String),
+    HttpServer(String),
 }
 
 impl Error for TotpError {}
