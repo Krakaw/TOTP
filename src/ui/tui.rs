@@ -29,7 +29,7 @@ impl<B: Backend> Tui<B> {
 
         std::panic::set_hook(Box::new(move |panic| {
             disable_raw_mode().unwrap();
-            crossterm::execute!(io::stdout(), LeaveAlternateScreen).unwrap();
+            crossterm::execute!(io::stdout(), LeaveAlternateScreen, DisableMouseCapture).unwrap();
             original_hook(panic);
         }));
         Ok(())

@@ -1,23 +1,34 @@
 use crate::errors::TotpError;
-use crate::Token;
+use crate::storage::token::Token;
 use chrono::NaiveDateTime;
 use totp_rs::{Algorithm, TOTP};
 
 #[derive(Clone)]
 pub struct Generator {
     totp: TOTP<Token>,
+    step: u64,
 }
 
 impl Generator {
     pub fn new(token: Token) -> Result<Self, TotpError> {
-        let totp = TOTP::new(Algorithm::SHA1, 6, 1, 30, token, None, "".to_string())?;
-        Ok(Self { totp })
+        let step = token.step.clone();
+        let totp = TOTP::new(
+            Algorithm::SHA1,
+            token.digits,
+            token.skew,
+            step,
+            token,
+            None,
+            "".to_string(),
+        )?;
+        Ok(Self { totp, step })
     }
 
     pub fn generate(&self, time: Option<u64>) -> Result<(String, u64), TotpError> {
         let time = time.unwrap_or(chrono::Local::now().timestamp() as u64);
-        let offset = time % 30;
-        let rounded_up = (time - offset + 30) - time;
+        let offset = time % self.step;
+        let rounded_up = (time - offset + self.step) - time;
+
         Ok((self.totp.generate(time), rounded_up))
     }
 
@@ -42,6 +53,14 @@ impl Generator {
     pub fn check(&self, code: &str, time: Option<u64>) -> bool {
         let time = time.unwrap_or(chrono::Utc::now().timestamp() as u64);
         self.totp.check(code, time)
+    }
+}
+
+impl TryFrom<Token> for Generator {
+    type Error = TotpError;
+
+    fn try_from(value: Token) -> Result<Self, Self::Error> {
+        Generator::new(value)
     }
 }
 

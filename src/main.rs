@@ -7,7 +7,8 @@ mod ui;
 
 use crate::display::{Display, OutputFormat};
 use crate::errors::TotpError;
-use crate::storage::accounts::{Storage, Token};
+use crate::storage::accounts::Storage;
+use crate::storage::token::Token;
 use crate::ui::app::App;
 use crate::ui::event_handler::{Event, EventHandler};
 use crate::ui::tui::Tui;
@@ -42,6 +43,18 @@ enum Commands {
         /// TOTP Secret
         #[clap(short, long)]
         secret: Token,
+
+        /// Digits
+        #[clap(short, long, default_value = "6")]
+        digits: usize,
+
+        /// Skew
+        #[clap(short = 'k', long, default_value = "1")]
+        skew: u8,
+
+        /// Step
+        #[clap(short = 't', long, default_value = "30")]
+        step: u64,
     },
     /// Delete an account
     Delete {
@@ -101,8 +114,20 @@ fn main() -> Result<(), TotpError> {
         None => &Commands::Interactive {},
     };
     match command {
-        Commands::Add { account, secret } => {
-            storage.add_account(account.to_owned(), secret.to_owned())?;
+        Commands::Add {
+            account,
+            secret,
+            digits,
+            skew,
+            step,
+        } => {
+            let token = Token {
+                secret: secret.secret.clone(),
+                digits: digits.clone(),
+                skew: skew.clone(),
+                step: step.clone(),
+            };
+            storage.add_account(account.to_owned(), token)?;
         }
         Commands::Delete { account } => {
             storage.remove_account(account.to_owned())?;

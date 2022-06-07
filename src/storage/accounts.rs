@@ -1,52 +1,15 @@
 use crate::storage::encryption::Encryption;
-use data_encoding::BASE32;
+
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::collections::hash_map::Iter;
 use std::collections::HashMap;
-use std::fmt;
-use std::fmt::{Display, Formatter};
 use std::fs;
-use std::str::FromStr;
 
 use crate::errors::TotpError;
+use crate::Token;
 
 pub type AccountName = String;
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub struct Token(Vec<u8>);
-
-impl Display for Token {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        let encoded = BASE32.encode(self.0.as_slice());
-        write!(f, "{}", encoded)
-    }
-}
-
-impl AsRef<[u8]> for Token {
-    fn as_ref(&self) -> &[u8] {
-        self.0.as_ref()
-    }
-}
-
-impl TryFrom<String> for Token {
-    type Error = TotpError;
-
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        let bytes = BASE32.decode(value.trim_end().to_uppercase().as_bytes())?;
-        Ok(Token(bytes))
-    }
-}
-
-impl FromStr for Token {
-    type Err = TotpError;
-
-    fn from_str(value: &str) -> Result<Self, Self::Err> {
-        Ok(Token(
-            BASE32.decode(value.trim_end().to_uppercase().as_bytes())?,
-        ))
-    }
-}
 
 #[derive(Serialize, Deserialize)]
 pub struct Contents {
