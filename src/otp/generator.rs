@@ -1,5 +1,5 @@
 use crate::errors::TotpError;
-use crate::storage::token::Token;
+use crate::otp::token::Token;
 use chrono::NaiveDateTime;
 use totp_rs::{Algorithm, TOTP};
 

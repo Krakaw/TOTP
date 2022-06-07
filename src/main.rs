@@ -8,13 +8,13 @@ mod ui;
 use crate::display::{Display, OutputFormat};
 use crate::errors::TotpError;
 use crate::storage::accounts::Storage;
-use crate::storage::token::Token;
 use crate::ui::app::App;
 use crate::ui::event_handler::{Event, EventHandler};
 use crate::ui::tui::Tui;
 use chrono::{DateTime, FixedOffset, NaiveDateTime};
 use clap::{Parser, Subcommand};
 use otp::generator::Generator;
+use otp::token::Token;
 use rpassword::read_password;
 use std::io::Write;
 
