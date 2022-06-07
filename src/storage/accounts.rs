@@ -44,15 +44,29 @@ impl Storage {
         Ok(storage)
     }
 
-    #[allow(dead_code)]
-    pub fn get_account_token(&self, account: AccountName) -> Result<Token, TotpError> {
-        if !self.accounts.contains_key(&account) {
-            return Err(TotpError::AccountNotFound(account));
-        }
-        self.accounts
-            .get(&account)
+    pub fn search_accounts(
+        &self,
+        account_search: String,
+    ) -> Result<(AccountName, Token), TotpError> {
+        let mut accounts = self
+            .accounts
+            .iter()
+            .filter(|(account_name, _token)| {
+                account_name
+                    .to_lowercase()
+                    .contains(&account_search.to_lowercase())
+            })
+            .clone()
+            .collect::<Vec<(&AccountName, &Token)>>();
+        accounts.sort_by(|a, b| a.0.cmp(&b.0));
+
+        accounts
+            .into_iter()
+            .map(|(a, t)| (a.clone(), t.clone()))
+            .collect::<Vec<_>>()
+            .first()
             .cloned()
-            .ok_or(TotpError::AccountNotFound(account))
+            .ok_or(TotpError::AccountNotFound(account_search))
     }
 
     pub fn add_account(&mut self, account: AccountName, token: Token) -> Result<(), TotpError> {
