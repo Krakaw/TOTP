@@ -1,0 +1,14 @@
+version: '3'
+services:
+  api:
+    image: totp:latest
+    environment:
+      - LISTEN=0.0.0.0:8080
+      - PASSWORD=password
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    command: [ "totp", "-p", "$PASSWORD", "server"]
+
+volumes:
+  config:

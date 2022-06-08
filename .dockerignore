@@ -1,0 +1,11 @@
+target/
+scripts/
+meta/
+demo/
+.idea/
+wasm*/
+.storage*
+Dockerfile
+Makefile
+README.md
+docker-compose.yml
