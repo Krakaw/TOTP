@@ -8,8 +8,6 @@ pub struct Server {
     server: TinyServer,
     storage: Storage,
 }
-use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::Arc;
 
 impl Server {
     pub fn new(listen: SocketAddr, storage: Storage) -> Result<Self, TotpError> {
@@ -24,16 +22,12 @@ impl Server {
 
     pub fn start(&self) -> Result<(), TotpError> {
         println!("Listening on {:?}", self.listen);
-        let running = Arc::new(AtomicBool::new(true));
-        let r = running.clone();   
-
         ctrlc::set_handler(move || {
-            r.store(false, Ordering::SeqCst);
-        }).expect("Error setting Ctrl-C handler");
+            std::process::exit(0);
+        })
+        .expect("Error setting Ctrl-C handler");
+
         for request in self.server.incoming_requests() {
-            if !r {
-                return Ok(())
-            }
             let account_or_secret = request.url().replace("/", "");
             let decoded = urlencoding::decode(&account_or_secret)
                 .map_err(|e| TotpError::Utf8(e.to_string()))?;
