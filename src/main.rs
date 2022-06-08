@@ -99,7 +99,7 @@ enum Commands {
     /// Dump the config file
     Dump,
     /// Start an HTTP Server
-    Server {
+    Serve {
         /// Listening address
         #[clap(short, long, default_value = "0.0.0.0:8080")]
         listen: SocketAddr,
@@ -175,7 +175,7 @@ fn main() -> Result<(), TotpError> {
         Commands::Interactive => {
             ui::init(storage)?;
         }
-        Commands::Server { listen } => {
+        Commands::Serve { listen } => {
             api::server::Server::new(listen.clone(), storage)?.start()?;
         }
     }

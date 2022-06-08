@@ -1,5 +1,6 @@
 use crate::ui::state::State;
 use crate::{Storage, TotpError};
+#[cfg(feature = "cli-clipboard")]
 use cli_clipboard::set_contents;
 use tui::widgets::TableState;
 
@@ -48,6 +49,7 @@ impl App {
     }
 
     pub fn set_clipboard(&mut self) {
+        #[cfg(feature = "cli-clipboard")]
         if let Some(i) = self.table_state.selected() {
             set_contents(self.state.display_otps[i].1.clone())
                 .expect("Failed to copy to clipboard");
