@@ -121,6 +121,7 @@ impl Storage {
 #[cfg(test)]
 mod tests {
     use crate::storage::accounts::{Storage, Token};
+    use std::env::temp_dir;
     use std::str::FromStr;
     use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -132,7 +133,9 @@ mod tests {
     }
 
     fn get_filename() -> String {
-        format!(".test.storage.{}.txt", rand())
+        let mut dir = temp_dir();
+        dir.push(format!(".test.storage.{}.txt", rand()));
+        dir.to_string_lossy().to_string()
     }
 
     #[test]
@@ -156,7 +159,7 @@ mod tests {
         assert_eq!(storage.to_iter().len(), 1);
         let storage = Storage::new("password".to_string(), Some(filename.clone())).unwrap();
         assert_eq!(storage.to_iter().len(), 1);
-        std::fs::remove_file(filename).unwrap();
+        let _ = std::fs::remove_file(filename);
     }
 
     #[test]
@@ -180,7 +183,7 @@ mod tests {
         assert_eq!(storage.to_iter().len(), 2);
         storage.remove_account("Account1".into()).unwrap();
         assert_eq!(storage.to_iter().len(), 1);
-        std::fs::remove_file(filename).unwrap();
+        let _ = std::fs::remove_file(filename);
     }
 
     #[test]
@@ -201,6 +204,6 @@ mod tests {
         let token = storage.search_accounts("Account3".into());
         assert!(token.is_err());
 
-        std::fs::remove_file(filename).unwrap();
+        let _ = std::fs::remove_file(filename);
     }
 }
