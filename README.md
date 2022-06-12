@@ -6,6 +6,8 @@ If you don't provide the -p argument it will expect the password on stdin.
 
 Running `totp` without any arguments will run the TUI interface.
 
+[![Lint and Test](https://github.com/Krakaw/TOTP/actions/workflows/test.yml/badge.svg)](https://github.com/Krakaw/TOTP/actions/workflows/test.yml)
+
 ![](demo/demo.gif)
 ## Usage
 
@@ -19,7 +21,7 @@ Krakaw <41575888+Krakaw@users.noreply.github.com>
 A CLI and TUI TOTP manager
 
 USAGE:
-    totp [OPTIONS] <SUBCOMMAND>
+    totp [OPTIONS] [SUBCOMMAND]
 
 OPTIONS:
     -f, --filename <FILENAME>    The storage filename [default: .storage.txt]
@@ -31,10 +33,11 @@ SUBCOMMANDS:
     add            Add a new account
     check          Check an OTP
     delete         Delete an account
+    dump           Dump the config file
     generate       Generate an OTP
     help           Print this message or the help of the given subcommand(s)
     interactive    Run in interactive mode [default]
-
+    serve          Start an HTTP Server
 ```
 
 ### Add accounts
