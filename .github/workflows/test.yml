@@ -36,7 +36,8 @@ jobs:
           toolchain: stable
           override: true
       - name: Install dependencies
-        run: sudo apt-get install -y --no-install-recommends \
+        run:
+          sudo apt-get update && sudo apt-get install -y --no-install-recommends \
           ca-certificates \
           gcc \
           libc6-dev \
