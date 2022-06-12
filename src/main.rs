@@ -132,9 +132,9 @@ fn main() -> Result<(), TotpError> {
         } => {
             let token = Token {
                 secret: secret.secret.clone(),
-                digits: digits.clone(),
-                skew: skew.clone(),
-                step: step.clone(),
+                digits: *digits,
+                skew: *skew,
+                step: *step,
             };
             storage.add_account(account.to_owned(), token)?;
         }
@@ -176,7 +176,7 @@ fn main() -> Result<(), TotpError> {
             ui::init(storage)?;
         }
         Commands::Serve { listen } => {
-            api::server::Server::new(listen.clone(), storage)?.start()?;
+            api::server::Server::new(*listen, storage)?.start()?;
         }
     }
     Ok(())

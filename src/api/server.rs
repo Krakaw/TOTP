@@ -11,8 +11,7 @@ pub struct Server {
 
 impl Server {
     pub fn new(listen: SocketAddr, storage: Storage) -> Result<Self, TotpError> {
-        let server =
-            TinyServer::http(listen.clone()).map_err(|e| TotpError::HttpServer(e.to_string()))?;
+        let server = TinyServer::http(listen).map_err(|e| TotpError::HttpServer(e.to_string()))?;
         Ok(Self {
             listen,
             server,
@@ -28,7 +27,7 @@ impl Server {
         .expect("Error setting Ctrl-C handler");
 
         for request in self.server.incoming_requests() {
-            let account_or_secret = request.url().replace("/", "");
+            let account_or_secret = request.url().replace('/', "");
             let decoded = urlencoding::decode(&account_or_secret)
                 .map_err(|e| TotpError::Utf8(e.to_string()))?;
             let account_token_result =

@@ -11,7 +11,7 @@ pub struct Generator {
 
 impl Generator {
     pub fn new(token: Token) -> Result<Self, TotpError> {
-        let step = token.step.clone();
+        let step = token.step;
         let totp = TOTP::new(
             Algorithm::SHA1,
             token.digits,

@@ -58,7 +58,7 @@ impl Storage {
             })
             .clone()
             .collect::<Vec<(&AccountName, &Token)>>();
-        accounts.sort_by(|a, b| a.0.cmp(&b.0));
+        accounts.sort_by(|a, b| a.0.cmp(b.0));
 
         accounts
             .into_iter()
