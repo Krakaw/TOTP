@@ -196,9 +196,9 @@ mod tests {
         storage
             .add_account("Account2".to_string(), Token::from_str("KRSXG5A=").unwrap())
             .unwrap();
-        let token = storage.get_account_token("Account2".into()).unwrap();
+        let (_, token) = storage.search_accounts("Account2".into()).unwrap();
         assert_eq!(token.to_string(), "KRSXG5A=".to_string());
-        let token = storage.get_account_token("Account3".into());
+        let token = storage.search_accounts("Account3".into());
         assert!(token.is_err());
 
         std::fs::remove_file(filename).unwrap();
