@@ -60,6 +60,17 @@ SUBCOMMANDS:
 
     totp -p password check -t TokenSecretKey -o 123456 -s 2022-06-03T08:35:00+02:00 -r 10  
 
+### Start an HTTP REST server that will return an OTP from your accounts if a name is provided or generate one for a provided secret
+
+    totp -p password serve
+
+    # Example using a secret for a once off TOTP
+    curl localhost:8080/JBSWY3DPEHPK3PXP
+    {"account_name":"Secret","code":"359962","expiry":11}
+
+    curl localhost:8080/acc
+    {"account_name":"Account 1","code":"783196","expiry":30}
+
 ## Key Bindings
 
 ### User Interface
