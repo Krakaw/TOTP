@@ -44,14 +44,6 @@ SUBCOMMANDS:
 
     totp -p password add -a AccountName -s SecretToken
 
-### Generate tokens in a loop
-
-    totp -p password generate -r
-
-    Account1   123456     04
-    Account2   123456     04
-    Account3   123456     04
-
 ### Delete an account
 
     totp -p password delete -a AccountName
