@@ -1,10 +1,10 @@
-# TOTP
+# TROTP
 
 A CLI tool for managing TOTP accounts.
 All accounts are stored in a local file that's encrypted with the provided password.
 If you don't provide the -p argument it will expect the password on stdin.
 
-Running `totp` without any arguments will run the TUI interface.
+Running `trotp` without any arguments will run the TUI interface.
 
 [![Lint and Test](https://github.com/Krakaw/TOTP/actions/workflows/test.yml/badge.svg)](https://github.com/Krakaw/TOTP/actions/workflows/test.yml)
 
@@ -12,11 +12,11 @@ Running `totp` without any arguments will run the TUI interface.
 ## Usage
 
 ```bash
-totp --help
+trotp --help
 ```
 
 ```
-totp 0.1.1
+trotp 0.1.1
 Krakaw <41575888+Krakaw@users.noreply.github.com>
 A CLI and TUI TOTP manager
 
@@ -42,19 +42,19 @@ SUBCOMMANDS:
 
 ### Add accounts
 
-    totp -p password add -a AccountName -s SecretToken
+    tortp -p password add -a AccountName -s SecretToken
 
 ### Delete an account
 
-    totp -p password delete -a AccountName
+    trotp -p password delete -a AccountName
 
 ### Check an OTP against a secret for a specific time within a range
 
-    totp -p password check -t TokenSecretKey -o 123456 -s 2022-06-03T08:35:00+02:00 -r 10  
+    trotp -p password check -t TokenSecretKey -o 123456 -s 2022-06-03T08:35:00+02:00 -r 10  
 
 ### Start an HTTP REST server that will return an OTP from your accounts if a name is provided or generate one for a provided secret
 
-    totp -p password serve
+    trotp -p password serve
 
     # Example using a secret for a once off TOTP
     curl localhost:8080/JBSWY3DPEHPK3PXP

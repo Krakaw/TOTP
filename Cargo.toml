@@ -1,5 +1,5 @@
 [package]
-name = "totp"
+name = "trotp"
 version = "0.1.1"
 edition = "2021"
 authors = ["Krakaw <41575888+Krakaw@users.noreply.github.com>"]
@@ -8,7 +8,7 @@ description = "TUI TOTP generator"
 homepage = "https://github.com/Krakaw/totp"
 repository = "https://github.com/Krakaw/totp"
 readme = "README.md"
-keywords = ["totp", "otp", "google-auth", "one-time-pin"]
+keywords = ["totp", "otp", "google-auth", "one-time-pin", "trotp"]
 categories = ["command-line-utilities", "web-programming::http-server", "authentication"]
 
 [lib]
@@ -16,7 +16,7 @@ crate-type = ["cdylib", "rlib"]
 path = "src/lib.rs"
 
 [[bin]]
-name = "totp"
+name = "trotp"
 path = "src/main.rs"
 
 [dependencies]

@@ -1319,27 +1319,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cda74da7e1a664f795bb1f8a87ec406fb89a02522cf6e50620d016add6dbbf5c"
 
 [[package]]
-name = "totp"
-version = "0.1.1"
-dependencies = [
- "chrono",
- "clap 3.1.18",
- "cli-clipboard",
- "crossterm",
- "ctrlc",
- "data-encoding",
- "openssl",
- "rpassword",
- "serde",
- "serde_json",
- "tiny_http",
- "totp-rs",
- "tui",
- "urlencoding",
- "wasm-bindgen",
-]
-
-[[package]]
 name = "totp-rs"
 version = "2.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1363,6 +1342,27 @@ dependencies = [
  "nom",
  "parking_lot 0.10.2",
  "petgraph",
+]
+
+[[package]]
+name = "trotp"
+version = "0.1.1"
+dependencies = [
+ "chrono",
+ "clap 3.1.18",
+ "cli-clipboard",
+ "crossterm",
+ "ctrlc",
+ "data-encoding",
+ "openssl",
+ "rpassword",
+ "serde",
+ "serde_json",
+ "tiny_http",
+ "totp-rs",
+ "tui",
+ "urlencoding",
+ "wasm-bindgen",
 ]
 
 [[package]]
