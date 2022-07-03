@@ -9,6 +9,12 @@ Running `trotp` without any arguments will run the TUI interface.
 [![Lint and Test](https://github.com/Krakaw/TOTP/actions/workflows/test.yml/badge.svg)](https://github.com/Krakaw/TOTP/actions/workflows/test.yml)
 
 ![](demo/demo.gif)
+
+## Installation
+
+```bash
+cargo install trotp
+```
 ## Usage
 
 ```bash
