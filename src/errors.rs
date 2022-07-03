@@ -11,6 +11,7 @@ pub enum TotpError {
     Base32Decode(String),
     Clap(String),
     TotpUrl(String),
+    Format(String),
     Encryption(String),
     Decryption(String),
     FileIO(String),
@@ -49,6 +50,11 @@ impl From<clap::Error> for TotpError {
     }
 }
 
+impl From<std::fmt::Error> for TotpError {
+    fn from(e: std::fmt::Error) -> Self {
+        TotpError::Format(e.to_string())
+    }
+}
 impl From<ErrorStack> for TotpError {
     fn from(e: ErrorStack) -> Self {
         TotpError::Encryption(e.to_string())

@@ -1,13 +1,13 @@
 use crate::storage::encryption::Encryption;
 
+use crate::errors::TotpError;
+use crate::Token;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::collections::hash_map::Iter;
 use std::collections::HashMap;
+use std::fmt::Write;
 use std::fs;
-
-use crate::errors::TotpError;
-use crate::Token;
 
 pub type AccountName = String;
 
@@ -86,7 +86,7 @@ impl Storage {
     pub fn save_file(&self) -> Result<(), TotpError> {
         let mut contents = String::new();
         for (account, token) in &self.accounts {
-            contents.push_str(&format!("{}|{}\n", account, token));
+            writeln!(contents, "{}|{}", account, token)?;
         }
         let contents = Contents {
             accounts: self.accounts.clone(),
