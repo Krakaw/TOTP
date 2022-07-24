@@ -1,9 +1,13 @@
 use crate::storage::accounts::AccountName;
 use crate::{Generator, Storage, TotpError};
 
+pub type TotpAccountName = String;
+pub type TotpCode = String;
+type ExpirySeconds = u64;
 pub enum InputMode {
     Normal,
     Input,
+    AddOtp,
 }
 
 impl Default for InputMode {
@@ -16,7 +20,7 @@ pub struct State {
     pub input_mode: InputMode,
     pub filter: String,
     pub items: Vec<(AccountName, Generator)>,
-    pub display_otps: Vec<(String, String, u64)>,
+    pub display_otps: Vec<(TotpAccountName, TotpCode, ExpirySeconds)>,
     pub running: bool,
 }
 
@@ -31,6 +35,7 @@ impl Default for State {
         }
     }
 }
+
 impl State {
     pub fn new(storage: Storage) -> Result<Self, TotpError> {
         let mut items = vec![];
