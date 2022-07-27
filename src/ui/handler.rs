@@ -30,9 +30,8 @@ pub fn handle_key_events<B: Backend>(
 pub fn handle_add_otp_mode(key_event: KeyEvent, app: &mut App) {
     let code = key_event.code;
     let modifiers = key_event.modifiers;
-    match (code, modifiers) {
-        (KeyCode::Esc, _) => app.state.input_mode = InputMode::Normal,
-        _ => {}
+    if let (KeyCode::Esc, _) = (code, modifiers) {
+        app.state.input_mode = InputMode::Normal
     }
 }
 
