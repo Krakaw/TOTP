@@ -1,8 +1,10 @@
+use crate::storage::secure_data::SecureData;
 use crate::{Generator, Storage, Token, TotpError};
 use serde_json::json;
 use std::net::SocketAddr;
 use std::str::FromStr;
 use tiny_http::{Response, Server as TinyServer};
+
 pub struct Server {
     listen: SocketAddr,
     server: TinyServer,
@@ -36,14 +38,28 @@ impl Server {
                     .or_else(|_e| {
                         Token::from_str(&account_or_secret)
                             .map(|token| ("Secret".to_string(), token))
+                            .and_then(|(account_name, token)| {
+                                Ok((
+                                    account_name,
+                                    SecureData {
+                                        token: Some(token),
+                                        password: None,
+                                        note: None,
+                                    },
+                                ))
+                            })
                     });
 
-            let result = if let Ok((account_name, token)) = account_token_result {
-                if let Ok(generator) = Generator::new(token) {
-                    let (code, expiry) = generator.generate(None)?;
-                    json!({"account_name": account_name, "code": code, "expiry": expiry})
+            let result = if let Ok((account_name, secure_data)) = account_token_result {
+                if let Some(token) = secure_data.token {
+                    if let Ok(generator) = Generator::new(token) {
+                        let (code, expiry) = generator.generate(None)?;
+                        json!({"account_name": account_name, "code": code, "expiry": expiry})
+                    } else {
+                        json!({"error": "Failed to create generator"})
+                    }
                 } else {
-                    json!({"error": "Failed to create generator"})
+                    json!({"error": "Invalid token or account provided"})
                 }
             } else {
                 json!({"error": "Invalid token or account provided"})

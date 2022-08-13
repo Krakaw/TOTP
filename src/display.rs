@@ -38,15 +38,20 @@ impl Display {
     ) -> Result<(), TotpError> {
         loop {
             let mut lines = Vec::new();
-            for (account_name, token) in self.storage.to_iter().filter(|(acc, _token)| {
+            for (account_name, secure_data) in self.storage.to_iter().filter(|(acc, _token)| {
                 if let Some(account) = account {
                     acc.to_lowercase().contains(&account.to_lowercase())
                 } else {
                     true
                 }
             }) {
-                let generator = Generator::new(token.to_owned())?;
-                let (totp, expiry) = generator.generate(time.map(|t| t.timestamp() as u64))?;
+                let (totp, expiry) = if let Some(token) = secure_data.token.clone() {
+                    let generator = Generator::new(token.to_owned())?;
+                    generator.generate(time.map(|t| t.timestamp() as u64))?
+                } else {
+                    ("N/A".to_string(), 0)
+                };
+
                 let colour = if expiry > 15 {
                     "\x1b[92m" // Green
                 } else if expiry > 5 {

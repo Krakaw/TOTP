@@ -26,7 +26,12 @@ pub fn render<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>, rect: Rect) {
                     .contains(&app.state.filter.to_lowercase())
         })
         .map(|(account_name, generator)| {
-            let (code, expiry) = generator.generate(None).unwrap();
+            let (code, expiry) = if let Some(generator) = generator {
+                generator.generate(None).unwrap()
+            } else {
+                ("N/A".to_string(), 0)
+            };
+
             (account_name.to_string(), code, expiry)
         })
         .collect::<Vec<_>>();

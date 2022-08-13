@@ -1,24 +1,31 @@
 extern crate core;
+
+use std::io::Write;
+use std::net::SocketAddr;
+
+use chrono::{DateTime, FixedOffset, NaiveDateTime};
+use clap::{Parser, Subcommand};
+use rpassword::read_password;
+
+use crate::db::Db;
+use otp::generator::Generator;
+use otp::token::Token;
+
+use crate::display::{Display, OutputFormat};
+use crate::errors::TotpError;
+use crate::storage::accounts::Storage;
+use crate::storage::secure_data::SecureData;
+use crate::ui::app::App;
+use crate::ui::event_handler::{Event, EventHandler};
+use crate::ui::tui::Tui;
+
 mod api;
+mod db;
 mod display;
 mod errors;
 mod otp;
 mod storage;
 mod ui;
-
-use crate::display::{Display, OutputFormat};
-use crate::errors::TotpError;
-use crate::storage::accounts::Storage;
-use crate::ui::app::App;
-use crate::ui::event_handler::{Event, EventHandler};
-use crate::ui::tui::Tui;
-use chrono::{DateTime, FixedOffset, NaiveDateTime};
-use clap::{Parser, Subcommand};
-use otp::generator::Generator;
-use otp::token::Token;
-use rpassword::read_password;
-use std::io::Write;
-use std::net::SocketAddr;
 
 /// A CLI and TUI TOTP manager
 #[derive(Parser, Debug)]
@@ -117,6 +124,8 @@ fn main() -> Result<(), TotpError> {
             read_password().unwrap()
         }
     };
+    let db = Db::new(None)?;
+    db.init()?;
     let mut storage = Storage::new(password, Some(cli.filename))?;
     let command = match &cli.command {
         Some(command) => command,
@@ -136,7 +145,12 @@ fn main() -> Result<(), TotpError> {
                 skew: *skew,
                 step: *step,
             };
-            storage.add_account(account.to_owned(), token)?;
+            let secure_data = SecureData {
+                token: Some(token),
+                password: None,
+                note: None,
+            };
+            storage.add_account(account.to_owned(), secure_data)?;
         }
         Commands::Delete { account } => {
             storage.remove_account(account.to_owned())?;

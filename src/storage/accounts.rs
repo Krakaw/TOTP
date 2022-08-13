@@ -1,6 +1,7 @@
 use crate::storage::encryption::Encryption;
 
 use crate::errors::TotpError;
+use crate::storage::secure_data::SecureData;
 use crate::Token;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -13,12 +14,12 @@ pub type AccountName = String;
 
 #[derive(Serialize, Deserialize)]
 pub struct Contents {
-    pub accounts: HashMap<AccountName, Token>,
+    pub accounts: HashMap<AccountName, SecureData>,
 }
 
 #[derive(Clone)]
 pub struct Storage {
-    pub accounts: HashMap<AccountName, Token>,
+    pub accounts: HashMap<AccountName, SecureData>,
     password: String,
     filename: String,
 }
@@ -47,17 +48,17 @@ impl Storage {
     pub fn search_accounts(
         &self,
         account_search: String,
-    ) -> Result<(AccountName, Token), TotpError> {
+    ) -> Result<(AccountName, SecureData), TotpError> {
         let mut accounts = self
             .accounts
             .iter()
-            .filter(|(account_name, _token)| {
+            .filter(|(account_name, _secure_data)| {
                 account_name
                     .to_lowercase()
                     .contains(&account_search.to_lowercase())
             })
             .clone()
-            .collect::<Vec<(&AccountName, &Token)>>();
+            .collect::<Vec<(&AccountName, &SecureData)>>();
         accounts.sort_by(|a, b| a.0.cmp(b.0));
 
         accounts
@@ -69,8 +70,12 @@ impl Storage {
             .ok_or(TotpError::AccountNotFound(account_search))
     }
 
-    pub fn add_account(&mut self, account: AccountName, token: Token) -> Result<(), TotpError> {
-        let _ = self.accounts.insert(account.trim().into(), token);
+    pub fn add_account(
+        &mut self,
+        account: AccountName,
+        secure_data: SecureData,
+    ) -> Result<(), TotpError> {
+        let _ = self.accounts.insert(account.trim().into(), secure_data);
         self.save_file()
     }
 
@@ -85,8 +90,8 @@ impl Storage {
 
     pub fn save_file(&self) -> Result<(), TotpError> {
         let mut contents = String::new();
-        for (account, token) in &self.accounts {
-            writeln!(contents, "{}|{}", account, token)?;
+        for (account, secure_data) in &self.accounts {
+            writeln!(contents, "{}|{}", account, secure_data)?;
         }
         let contents = Contents {
             accounts: self.accounts.clone(),
@@ -113,7 +118,7 @@ impl Storage {
         Ok(())
     }
 
-    pub fn to_iter(&self) -> Iter<AccountName, Token> {
+    pub fn to_iter(&self) -> Iter<AccountName, SecureData> {
         self.accounts.iter()
     }
 }

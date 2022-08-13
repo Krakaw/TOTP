@@ -22,6 +22,8 @@ pub enum TotpError {
     UiEvent(String),
     Json(String),
     HttpServer(String),
+    R2d2(String),
+    Migration(String),
 }
 
 impl Error for TotpError {}
@@ -29,6 +31,23 @@ impl Error for TotpError {}
 impl Display for TotpError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "TOTP Error: {:?}", self)
+    }
+}
+
+impl From<r2d2::Error> for TotpError {
+    fn from(e: r2d2::Error) -> Self {
+        TotpError::R2d2(e.to_string())
+    }
+}
+impl From<r2d2_sqlite::rusqlite::Error> for TotpError {
+    fn from(e: r2d2_sqlite::rusqlite::Error) -> Self {
+        TotpError::R2d2(e.to_string())
+    }
+}
+
+impl From<rusqlite_migration::Error> for TotpError {
+    fn from(e: rusqlite_migration::Error) -> Self {
+        TotpError::Migration(e.to_string())
     }
 }
 
