@@ -19,27 +19,27 @@ pub fn render<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>, rect: Rect) {
         .state
         .items
         .iter()
-        .filter(|(account_name, _)| {
+        .filter(|(account_name, _, _record_id)| {
             app.state.filter.is_empty()
                 || account_name
                     .to_lowercase()
                     .contains(&app.state.filter.to_lowercase())
         })
-        .map(|(account_name, generator)| {
+        .map(|(account_name, generator, record_id)| {
             let (code, expiry) = if let Some(generator) = generator {
                 generator.generate(None).unwrap()
             } else {
                 ("N/A".to_string(), 0)
             };
 
-            (account_name.to_string(), code, expiry)
+            (account_name.to_string(), code, expiry, record_id.clone())
         })
         .collect::<Vec<_>>();
     app.state.display_otps = display_rows.clone();
     let rows = display_rows
         .iter()
         .cloned()
-        .map(|(account_name, code, expiry)| {
+        .map(|(account_name, code, expiry, _)| {
             let height = 1;
             let color = if expiry > 15 {
                 Color::Green

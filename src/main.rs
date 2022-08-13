@@ -53,6 +53,10 @@ enum Commands {
         #[clap(short, long)]
         account: String,
 
+        /// User ID
+        #[clap(short, long)]
+        user: Option<String>,
+
         /// Note
         #[clap(short, long)]
         note: Option<String>,
@@ -137,18 +141,6 @@ fn main() -> Result<(), TotpError> {
             read_password().unwrap()
         }
     };
-    // let pg = PasswordGenerator {
-    //     length: 8,
-    //     numbers: true,
-    //     lowercase_letters: true,
-    //     uppercase_letters: true,
-    //     symbols: true,
-    //     spaces: false,
-    //     exclude_similar_characters: false,
-    //     strict: true,
-    // };
-    //
-    // println!("{}", pg.generate_one().unwrap());
 
     let db = Db::new(password.clone(), Some(cli.sqlite_path.into()))?;
     db.init()?;
@@ -162,6 +154,7 @@ fn main() -> Result<(), TotpError> {
     match command {
         Commands::Add {
             account,
+            user,
             note,
             password,
             secret,
@@ -185,6 +178,7 @@ fn main() -> Result<(), TotpError> {
                 token,
                 password: password.clone(),
                 note: note.clone(),
+                user: user.clone(),
                 ..Record::default()
             };
             storage.add_account(record)?;

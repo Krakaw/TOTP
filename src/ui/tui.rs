@@ -1,6 +1,6 @@
 use crate::ui::app::App;
 use crate::ui::event_handler::EventHandler;
-use crate::ui::widgets::{filter_input, otp_table};
+use crate::ui::widgets::{details_view, filter_input, otp_table};
 use crate::TotpError;
 use crossterm::event::{DisableMouseCapture, EnableMouseCapture};
 use crossterm::terminal;
@@ -58,5 +58,11 @@ fn render<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>) {
         .margin(1)
         .split(frame.size());
     filter_input::render(app, frame, rects[0]);
-    otp_table::render(app, frame, rects[1]);
+    let body_rects = Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints([Constraint::Percentage(90), Constraint::Percentage(10)].as_ref())
+        .margin(0)
+        .split(rects[1]);
+    otp_table::render(app, frame, body_rects[0]);
+    details_view::render(app, frame, body_rects[1]);
 }
