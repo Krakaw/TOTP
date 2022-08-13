@@ -1,5 +1,5 @@
 use crate::storage::accounts::AccountName;
-use crate::{Generator, Storage, StorageTrait, TotpError};
+use crate::{Generator, Record, Storage, StorageTrait, TotpError};
 
 pub type TotpAccountName = String;
 pub type TotpCode = String;
@@ -21,6 +21,7 @@ pub struct State {
     pub input_mode: InputMode,
     pub filter: String,
     pub items: Vec<(AccountName, Option<Generator>, RecordId)>,
+    pub records: Vec<Record>,
     pub display_otps: Vec<(TotpAccountName, TotpCode, ExpirySeconds, RecordId)>,
     pub running: bool,
 }
@@ -40,7 +41,9 @@ impl Default for State {
 impl State {
     pub fn new<T: StorageTrait>(storage: T) -> Result<Self, TotpError> {
         let mut items = vec![];
+        let mut records = vec![];
         for (account_name, record) in storage.accounts()?.iter() {
+            records.push(record.clone());
             let generator = record
                 .token
                 .as_ref()
@@ -51,6 +54,7 @@ impl State {
         items.sort_by(|a, b| a.0.cmp(&b.0));
         Ok(Self {
             items,
+            records,
             ..State::default()
         })
     }

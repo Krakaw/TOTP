@@ -1,4 +1,5 @@
 use crate::ui::app::App;
+use crossterm::style::style;
 use tui::backend::Backend;
 use tui::layout::{Constraint, Rect};
 use tui::style::{Color, Modifier, Style};
@@ -12,7 +13,9 @@ pub fn render<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>, rect: Rect) {
 
     if let Some(selected) = app.table_state.selected() {
         if let Some((_, _, _, record_id)) = app.state.display_otps.get(selected) {
-            block = block.title(record_id.to_string())
+            if let Some(record) = app.state.records.iter().find(|r| &r.id == record_id) {
+                block = block.title(record.account.unwrap_or_default())
+            }
         }
     }
     frame.render_widget(block, rect);
