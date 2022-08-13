@@ -1,5 +1,5 @@
 use crate::storage::accounts::AccountName;
-use crate::{Generator, Storage, TotpError};
+use crate::{Generator, Storage, StorageTrait, TotpError};
 
 pub type TotpAccountName = String;
 pub type TotpCode = String;
@@ -37,9 +37,9 @@ impl Default for State {
 }
 
 impl State {
-    pub fn new(storage: Storage) -> Result<Self, TotpError> {
+    pub fn new<T: StorageTrait>(storage: T) -> Result<Self, TotpError> {
         let mut items = vec![];
-        for (account_name, secure_data) in storage.accounts.iter() {
+        for (account_name, secure_data) in storage.accounts()?.iter() {
             let generator = secure_data
                 .token
                 .as_ref()

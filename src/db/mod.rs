@@ -7,6 +7,7 @@ use r2d2::{Pool, PooledConnection};
 use r2d2_sqlite::rusqlite::{Statement, Transaction};
 use r2d2_sqlite::SqliteConnectionManager;
 
+pub mod encryption;
 mod migrations;
 pub mod models;
 pub mod storage;

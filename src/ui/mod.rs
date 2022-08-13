@@ -1,4 +1,4 @@
-use crate::{App, Event, EventHandler, Storage, TotpError, Tui};
+use crate::{App, Event, EventHandler, Storage, StorageTrait, TotpError, Tui};
 use ::tui::backend::CrosstermBackend;
 use ::tui::Terminal;
 use std::io;
@@ -10,7 +10,7 @@ mod state;
 pub mod tui;
 pub mod widgets;
 
-pub fn init(storage: Storage) -> Result<(), TotpError> {
+pub fn init<T: StorageTrait>(storage: T) -> Result<(), TotpError> {
     let mut app = App::new(storage)?;
     let backend = CrosstermBackend::new(io::stdout());
     let terminal = Terminal::new(backend)?;

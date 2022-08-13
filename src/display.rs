@@ -1,4 +1,4 @@
-use crate::{Generator, Storage, TotpError};
+use crate::{Generator, Storage, StorageTrait, TotpError};
 use chrono::NaiveDateTime;
 use std::io::stdout;
 use std::io::Write;
@@ -24,11 +24,14 @@ impl FromStr for OutputFormat {
     }
 }
 
-pub struct Display {
-    pub storage: Storage,
+pub struct Display<T: StorageTrait> {
+    pub storage: T,
 }
 
-impl Display {
+impl<T> Display<T>
+where
+    T: StorageTrait,
+{
     pub fn render(
         &self,
         account: &Option<String>,
@@ -38,13 +41,15 @@ impl Display {
     ) -> Result<(), TotpError> {
         loop {
             let mut lines = Vec::new();
-            for (account_name, secure_data) in self.storage.to_iter().filter(|(acc, _token)| {
-                if let Some(account) = account {
-                    acc.to_lowercase().contains(&account.to_lowercase())
-                } else {
-                    true
-                }
-            }) {
+            for (account_name, secure_data) in
+                self.storage.accounts()?.iter().filter(|(acc, _token)| {
+                    if let Some(account) = account {
+                        acc.to_lowercase().contains(&account.to_lowercase())
+                    } else {
+                        true
+                    }
+                })
+            {
                 let (totp, expiry) = if let Some(token) = secure_data.token.clone() {
                     let generator = Generator::new(token.to_owned())?;
                     generator.generate(time.map(|t| t.timestamp() as u64))?

@@ -1,5 +1,5 @@
 use crate::ui::state::State;
-use crate::{Storage, TotpError};
+use crate::{Storage, StorageTrait, TotpError};
 #[cfg(feature = "cli-clipboard")]
 use cli_clipboard::set_contents;
 use tui::widgets::TableState;
@@ -11,7 +11,7 @@ pub struct App {
     pub table_state: TableState,
 }
 impl App {
-    pub fn new(storage: Storage) -> Result<Self, TotpError> {
+    pub fn new<T: StorageTrait>(storage: T) -> Result<Self, TotpError> {
         Ok(Self {
             state: State::new(storage)?,
             table_state: TableState::default(),

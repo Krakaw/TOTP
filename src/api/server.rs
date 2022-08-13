@@ -1,18 +1,21 @@
 use crate::db::models::record::Record;
-use crate::{Generator, Storage, Token, TotpError};
+use crate::{Generator, Storage, StorageTrait, Token, TotpError};
 use serde_json::json;
 use std::net::SocketAddr;
 use std::str::FromStr;
 use tiny_http::{Response, Server as TinyServer};
 
-pub struct Server {
+pub struct Server<T: StorageTrait> {
     listen: SocketAddr,
     server: TinyServer,
-    storage: Storage,
+    storage: T,
 }
 
-impl Server {
-    pub fn new(listen: SocketAddr, storage: Storage) -> Result<Self, TotpError> {
+impl<T> Server<T>
+where
+    T: StorageTrait,
+{
+    pub fn new(listen: SocketAddr, storage: T) -> Result<Self, TotpError> {
         let server = TinyServer::http(listen).map_err(|e| TotpError::HttpServer(e.to_string()))?;
         Ok(Self {
             listen,
@@ -32,22 +35,22 @@ impl Server {
             let account_or_secret = request.url().replace('/', "");
             let decoded = urlencoding::decode(&account_or_secret)
                 .map_err(|e| TotpError::Utf8(e.to_string()))?;
-            let account_token_result = self
-                .storage
-                .search_account(decoded.to_string().as_str())
-                .or_else(|_e| {
-                    Token::from_str(&account_or_secret)
-                        .map(|token| ("Secret".to_string(), token))
-                        .and_then(|(account_name, token)| {
-                            Ok((
-                                account_name,
-                                Record {
-                                    token: Some(token),
-                                    ..Record::default()
-                                },
-                            ))
-                        })
-                });
+            let account_token_result =
+                self.storage
+                    .search_account(decoded.to_string())
+                    .or_else(|_e| {
+                        Token::from_str(&account_or_secret)
+                            .map(|token| ("Secret".to_string(), token))
+                            .and_then(|(account_name, token)| {
+                                Ok((
+                                    account_name,
+                                    Record {
+                                        token: Some(token),
+                                        ..Record::default()
+                                    },
+                                ))
+                            })
+                    });
 
             let result = if let Ok((account_name, secure_data)) = account_token_result {
                 if let Some(token) = secure_data.token {

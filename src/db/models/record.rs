@@ -1,6 +1,6 @@
+use crate::db::encryption::Encryption;
 use crate::db::models::secure_record::SecureRecord;
 use crate::storage::accounts::AccountName;
-use crate::storage::encryption::Encryption;
 use crate::{Token, TotpError};
 use chrono::{NaiveDateTime, Utc};
 use serde::{Deserialize, Serialize};
@@ -51,7 +51,68 @@ impl Record {
     pub fn from_secure_record(
         secure_record: &SecureRecord,
         encryption: &Encryption,
+        password: &str,
     ) -> Result<Record, TotpError> {
-        Ok(Record::default())
+        Ok(Record {
+            id: secure_record.id,
+            account: decrypt_record_field(secure_record.account.as_ref(), password, encryption),
+            user: decrypt_record_field(secure_record.user.as_ref(), password, encryption),
+            token: decrypt_record_field(secure_record.token.as_ref(), password, encryption)
+                .map(|t| t.parse::<Token>())
+                .and_then(|t| t.ok()),
+            password: decrypt_record_field(secure_record.password.as_ref(), password, encryption),
+            note: decrypt_record_field(secure_record.note.as_ref(), password, encryption),
+            created_at: secure_record.created_at,
+            updated_at: secure_record.updated_at,
+        })
     }
+
+    pub fn to_secure_record(
+        &self,
+        encryption: &Encryption,
+        password: &str,
+    ) -> Result<SecureRecord, TotpError> {
+        Ok(SecureRecord {
+            id: self.id,
+            account: encrypt_record_field(self.account.as_ref(), password, encryption),
+            user: encrypt_record_field(self.user.as_ref(), password, encryption),
+            token: encrypt_record_field(self.token.as_ref(), password, encryption),
+            password: encrypt_record_field(self.password.as_ref(), password, encryption),
+            note: encrypt_record_field(self.note.as_ref(), password, encryption),
+            created_at: self.created_at,
+            updated_at: self.updated_at,
+        })
+    }
+}
+fn decrypt_record_field<T: Display>(
+    field: Option<&T>,
+    password: &str,
+    encryption: &Encryption,
+) -> Option<String> {
+    field
+        .map(|value| {
+            let mut parts = value
+                .clone()
+                .to_string()
+                .splitn(2, ':')
+                .map(|s| s.to_string())
+                .collect::<Vec<String>>()
+                .into_iter();
+            let content = parts.next().unwrap_or_default().to_string();
+            let iv = parts.next().unwrap_or_default().to_string();
+            (content, iv)
+        })
+        .map(|(content, iv)| encryption.decrypt(&content, password, &iv))
+        .and_then(|res| res.ok())
+}
+
+fn encrypt_record_field<T: Display>(
+    field: Option<&T>,
+    password: &str,
+    encryption: &Encryption,
+) -> Option<String> {
+    field
+        .map(|value| encryption.encrypt(&value.to_string(), password))
+        .and_then(|res| res.ok())
+        .map(|(encrypted_content, iv)| format!("{}:{}", encrypted_content, iv))
 }

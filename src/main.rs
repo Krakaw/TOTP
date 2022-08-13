@@ -3,22 +3,22 @@ extern crate core;
 use std::io::Write;
 use std::net::SocketAddr;
 
-use chrono::{DateTime, FixedOffset, NaiveDateTime};
-use clap::{Parser, Subcommand};
-use passwords::PasswordGenerator;
-use rpassword::read_password;
-
 use crate::db::models::record::Record;
 use crate::db::Db;
-use otp::generator::Generator;
-use otp::token::Token;
-
 use crate::display::{Display, OutputFormat};
 use crate::errors::TotpError;
 use crate::storage::accounts::Storage;
 use crate::ui::app::App;
 use crate::ui::event_handler::{Event, EventHandler};
 use crate::ui::tui::Tui;
+use chrono::{DateTime, FixedOffset, NaiveDateTime};
+use clap::{Parser, Subcommand};
+use db::storage::StorageTrait;
+use env_logger::Env;
+use otp::generator::Generator;
+use otp::token::Token;
+use passwords::PasswordGenerator;
+use rpassword::read_password;
 
 mod api;
 mod db;
@@ -53,9 +53,17 @@ enum Commands {
         #[clap(short, long)]
         account: String,
 
+        /// Note
+        #[clap(short, long)]
+        note: Option<String>,
+
+        /// Password
+        #[clap(short, long)]
+        password: Option<String>,
+
         /// TOTP Secret
         #[clap(short, long)]
-        secret: Token,
+        secret: Option<Token>,
 
         /// Digits
         #[clap(short, long, default_value = "6")]
@@ -118,6 +126,7 @@ enum Commands {
 }
 
 fn main() -> Result<(), TotpError> {
+    env_logger::Builder::from_env(Env::default().default_filter_or("trotp=info")).init();
     let cli = Cli::parse();
 
     let password = match cli.password {
@@ -143,7 +152,9 @@ fn main() -> Result<(), TotpError> {
 
     let db = Db::new(password.clone(), Some(cli.sqlite_path.into()))?;
     db.init()?;
-    let mut storage = Storage::new(password, Some(cli.filename))?;
+    let mut storage = db::storage::sqlite::SqliteStorage::new(db);
+
+    // let mut storage = Storage::new(password, Some(cli.filename))?;
     let command = match &cli.command {
         Some(command) => command,
         None => &Commands::Interactive {},
@@ -151,22 +162,32 @@ fn main() -> Result<(), TotpError> {
     match command {
         Commands::Add {
             account,
+            note,
+            password,
             secret,
             digits,
             skew,
             step,
         } => {
-            let token = Token {
-                secret: secret.secret.clone(),
-                digits: *digits,
-                skew: *skew,
-                step: *step,
+            let token = if let Some(secret) = secret {
+                Some(Token {
+                    secret: secret.secret.clone(),
+                    digits: *digits,
+                    skew: *skew,
+                    step: *step,
+                })
+            } else {
+                None
             };
-            let secure_data = Record {
-                token: Some(token),
+
+            let record = Record {
+                account: Some(account.to_string()),
+                token,
+                password: password.clone(),
+                note: note.clone(),
                 ..Record::default()
             };
-            storage.add_account(account.to_owned(), secure_data)?;
+            storage.add_account(record)?;
         }
         Commands::Delete { account } => {
             storage.remove_account(account.to_owned())?;
@@ -198,9 +219,9 @@ fn main() -> Result<(), TotpError> {
             );
         }
         Commands::Dump => {
-            for (a, t) in storage.to_iter() {
-                println!("{}\t{}", a, t);
-            }
+            // for (a, t) in storage.to_iter() {
+            //     println!("{}\t{}", a, t);
+            // }
         }
         Commands::Interactive => {
             ui::init(storage)?;

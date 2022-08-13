@@ -1,4 +1,4 @@
-use crate::storage::encryption::Encryption;
+use crate::db::encryption::Encryption;
 
 use crate::errors::TotpError;
 use crate::{Record, Token};
