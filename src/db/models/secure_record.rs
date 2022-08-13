@@ -1,5 +1,6 @@
+use crate::db::Connection;
 use crate::storage::accounts::AccountName;
-use crate::Token;
+use crate::{Token, TotpError};
 use chrono::NaiveDateTime;
 use r2d2_sqlite::rusqlite::{params, Row};
 use serde::{Deserialize, Serialize};
@@ -17,6 +18,19 @@ pub struct SecureRecord {
     pub note: Option<EncryptedString>,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
+}
+
+impl SecureRecord {
+    pub fn all(connection: &Connection) -> Result<Vec<SecureRecord>, TotpError> {
+        const SQL: &str = "SELECT * FROM secure_records;";
+        let mut stmt = connection.prepare(SQL)?;
+        let rows = stmt.query_map(params![], |r| Ok(Self::from(r)))?;
+        let mut result = vec![];
+        for row in rows {
+            result.push(row?);
+        }
+        Ok(result)
+    }
 }
 
 impl<'stmt> From<&Row<'stmt>> for SecureRecord {

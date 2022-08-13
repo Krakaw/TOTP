@@ -1,4 +1,4 @@
-use crate::storage::secure_data::SecureData;
+use crate::db::models::record::Record;
 use crate::{Generator, Storage, Token, TotpError};
 use serde_json::json;
 use std::net::SocketAddr;
@@ -32,23 +32,22 @@ impl Server {
             let account_or_secret = request.url().replace('/', "");
             let decoded = urlencoding::decode(&account_or_secret)
                 .map_err(|e| TotpError::Utf8(e.to_string()))?;
-            let account_token_result =
-                self.storage
-                    .search_accounts(decoded.to_string())
-                    .or_else(|_e| {
-                        Token::from_str(&account_or_secret)
-                            .map(|token| ("Secret".to_string(), token))
-                            .and_then(|(account_name, token)| {
-                                Ok((
-                                    account_name,
-                                    SecureData {
-                                        token: Some(token),
-                                        password: None,
-                                        note: None,
-                                    },
-                                ))
-                            })
-                    });
+            let account_token_result = self
+                .storage
+                .search_account(decoded.to_string().as_str())
+                .or_else(|_e| {
+                    Token::from_str(&account_or_secret)
+                        .map(|token| ("Secret".to_string(), token))
+                        .and_then(|(account_name, token)| {
+                            Ok((
+                                account_name,
+                                Record {
+                                    token: Some(token),
+                                    ..Record::default()
+                                },
+                            ))
+                        })
+                });
 
             let result = if let Ok((account_name, secure_data)) = account_token_result {
                 if let Some(token) = secure_data.token {

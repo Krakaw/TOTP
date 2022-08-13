@@ -1,3 +1,4 @@
+#![allow(clippy::large_enum_variant)]
 use std::path::PathBuf;
 use std::sync::Arc;
 
@@ -7,15 +8,17 @@ use r2d2_sqlite::rusqlite::{Statement, Transaction};
 use r2d2_sqlite::SqliteConnectionManager;
 
 mod migrations;
-mod models;
+pub mod models;
+pub mod storage;
 
 #[derive(Debug, Clone)]
 pub struct Db {
     pub pool: Arc<Pool<SqliteConnectionManager>>,
+    password: String,
 }
 
 impl Db {
-    pub fn new(connection_string: Option<PathBuf>) -> Result<Self, TotpError> {
+    pub fn new(password: String, connection_string: Option<PathBuf>) -> Result<Self, TotpError> {
         let sqlite_connection_manager = if let Some(connection_string) = connection_string {
             SqliteConnectionManager::file(connection_string)
         } else {
@@ -24,7 +27,7 @@ impl Db {
 
         let sqlite_pool = Pool::new(sqlite_connection_manager)?;
         let pool = Arc::new(sqlite_pool);
-        Ok(Db { pool })
+        Ok(Db { pool, password })
     }
 
     pub fn init(&self) -> Result<(), TotpError> {
@@ -32,6 +35,10 @@ impl Db {
         let migrations = migrations::migrations();
         migrations.to_latest(&mut connection)?;
         Ok(())
+    }
+
+    pub fn password(&self) -> &str {
+        self.password.as_str()
     }
 }
 

@@ -26,21 +26,22 @@ data-encoding = "2.1.1"
 wasm-bindgen = "0.2"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-rpassword = "7.0.0"
-clap = {version = "3.1.18", features = ["derive"]}
-tui = "0.18"
 chrono = { version = "0.4", features = ["serde"] }
-crossterm = "0.25.0"
+clap = {version = "3.1.18", features = ["derive"]}
 cli-clipboard = { version= "0.2.1", optional = true }
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0.81"
-openssl = "0.10"
-tiny_http = "0.11"
-urlencoding = "2.1.0"
+crossterm = "0.25.0"
 ctrlc = "3"
+openssl = "0.10"
+passwords = "3"
 r2d2 = "0.8.8"
 r2d2_sqlite = { version = "0.21.0" }
+rpassword = "7.0.0"
 rusqlite_migration = "1.0.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0.81"
+tiny_http = "0.11"
+tui = "0.18"
+urlencoding = "2.1.0"
 
 [features]
 default = ["cli-clipboard"]

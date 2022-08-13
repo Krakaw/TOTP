@@ -1,1 +1,2 @@
-mod secure_record;
+pub mod record;
+pub mod secure_record;

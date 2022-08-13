@@ -1,8 +1,7 @@
 use crate::storage::encryption::Encryption;
 
 use crate::errors::TotpError;
-use crate::storage::secure_data::SecureData;
-use crate::Token;
+use crate::{Record, Token};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::collections::hash_map::Iter;
@@ -14,12 +13,12 @@ pub type AccountName = String;
 
 #[derive(Serialize, Deserialize)]
 pub struct Contents {
-    pub accounts: HashMap<AccountName, SecureData>,
+    pub accounts: HashMap<AccountName, Record>,
 }
 
 #[derive(Clone)]
 pub struct Storage {
-    pub accounts: HashMap<AccountName, SecureData>,
+    pub accounts: HashMap<AccountName, Record>,
     password: String,
     filename: String,
 }
@@ -41,14 +40,21 @@ impl Storage {
             password,
             filename: filename.unwrap_or_else(|| ".storage.txt".to_string()),
         };
-        storage.load_file()?;
+        storage.load()?;
         Ok(storage)
+    }
+
+    pub fn search_account(&self, account_search: &str) -> Result<(AccountName, Record), TotpError> {
+        self.search_accounts(account_search)?
+            .first()
+            .cloned()
+            .ok_or(TotpError::AccountNotFound(account_search.to_string()))
     }
 
     pub fn search_accounts(
         &self,
-        account_search: String,
-    ) -> Result<(AccountName, SecureData), TotpError> {
+        account_search: &str,
+    ) -> Result<Vec<(AccountName, Record)>, TotpError> {
         let mut accounts = self
             .accounts
             .iter()
@@ -58,24 +64,22 @@ impl Storage {
                     .contains(&account_search.to_lowercase())
             })
             .clone()
-            .collect::<Vec<(&AccountName, &SecureData)>>();
+            .collect::<Vec<(&AccountName, &Record)>>();
         accounts.sort_by(|a, b| a.0.cmp(b.0));
 
-        accounts
+        Ok(accounts
             .into_iter()
             .map(|(a, t)| (a.clone(), t.clone()))
-            .collect::<Vec<_>>()
-            .first()
-            .cloned()
-            .ok_or(TotpError::AccountNotFound(account_search))
+            .collect::<Vec<_>>())
     }
 
     pub fn add_account(
         &mut self,
         account: AccountName,
-        secure_data: SecureData,
+        secure_data: Record,
     ) -> Result<(), TotpError> {
-        let _ = self.accounts.insert(account.trim().into(), secure_data);
+        let account_name: AccountName = account.trim().to_string();
+        let _ = self.accounts.insert(account_name, secure_data);
         self.save_file()
     }
 
@@ -104,7 +108,7 @@ impl Storage {
         Ok(())
     }
 
-    pub fn load_file(&mut self) -> Result<(), TotpError> {
+    pub fn load(&mut self) -> Result<(), TotpError> {
         if let Ok(file_contents) = fs::read_to_string(&self.filename) {
             let file_contents: Vec<&str> = file_contents.split(':').collect();
             let content = file_contents[0];
@@ -118,7 +122,7 @@ impl Storage {
         Ok(())
     }
 
-    pub fn to_iter(&self) -> Iter<AccountName, SecureData> {
+    pub fn to_iter(&self) -> Iter<AccountName, Record> {
         self.accounts.iter()
     }
 }
@@ -204,9 +208,9 @@ mod tests {
         storage
             .add_account("Account2".to_string(), Token::from_str("KRSXG5A=").unwrap())
             .unwrap();
-        let (_, token) = storage.search_accounts("Account2".into()).unwrap();
+        let (_, token) = storage.search_account("Account2".into()).unwrap();
         assert_eq!(token.to_string(), "KRSXG5A=".to_string());
-        let token = storage.search_accounts("Account3".into());
+        let token = storage.search_account("Account3".into());
         assert!(token.is_err());
 
         let _ = std::fs::remove_file(filename);

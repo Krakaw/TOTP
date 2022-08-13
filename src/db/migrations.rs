@@ -3,7 +3,7 @@ use rusqlite_migration::{Migrations, M};
 pub fn migrations() -> Migrations<'static> {
     Migrations::new(vec![M::up(
         r#"
-            CREATE TABLE IF NOT EXISTS secure_data
+            CREATE TABLE IF NOT EXISTS secure_records
             (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 account TEXT NULL,

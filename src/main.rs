@@ -5,8 +5,10 @@ use std::net::SocketAddr;
 
 use chrono::{DateTime, FixedOffset, NaiveDateTime};
 use clap::{Parser, Subcommand};
+use passwords::PasswordGenerator;
 use rpassword::read_password;
 
+use crate::db::models::record::Record;
 use crate::db::Db;
 use otp::generator::Generator;
 use otp::token::Token;
@@ -14,7 +16,6 @@ use otp::token::Token;
 use crate::display::{Display, OutputFormat};
 use crate::errors::TotpError;
 use crate::storage::accounts::Storage;
-use crate::storage::secure_data::SecureData;
 use crate::ui::app::App;
 use crate::ui::event_handler::{Event, EventHandler};
 use crate::ui::tui::Tui;
@@ -37,6 +38,9 @@ struct Cli {
     /// The storage filename
     #[clap(short, long, default_value = ".storage.txt")]
     filename: String,
+    /// The sqlite filename
+    #[clap(short, long, default_value = ".totp.sqlite3")]
+    sqlite_path: String,
     #[clap(subcommand)]
     command: Option<Commands>,
 }
@@ -124,7 +128,20 @@ fn main() -> Result<(), TotpError> {
             read_password().unwrap()
         }
     };
-    let db = Db::new(None)?;
+    // let pg = PasswordGenerator {
+    //     length: 8,
+    //     numbers: true,
+    //     lowercase_letters: true,
+    //     uppercase_letters: true,
+    //     symbols: true,
+    //     spaces: false,
+    //     exclude_similar_characters: false,
+    //     strict: true,
+    // };
+    //
+    // println!("{}", pg.generate_one().unwrap());
+
+    let db = Db::new(password.clone(), Some(cli.sqlite_path.into()))?;
     db.init()?;
     let mut storage = Storage::new(password, Some(cli.filename))?;
     let command = match &cli.command {
@@ -145,10 +162,9 @@ fn main() -> Result<(), TotpError> {
                 skew: *skew,
                 step: *step,
             };
-            let secure_data = SecureData {
+            let secure_data = Record {
                 token: Some(token),
-                password: None,
-                note: None,
+                ..Record::default()
             };
             storage.add_account(account.to_owned(), secure_data)?;
         }
