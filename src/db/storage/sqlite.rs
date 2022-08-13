@@ -55,7 +55,7 @@ impl StorageTrait for SqliteStorage {
         "#;
         let conn = self.connection()?;
         let mut stmt = conn.prepare(SQL)?;
-        let result = stmt.execute(params![
+        stmt.execute(params![
             secure_record.account,
             secure_record.user,
             secure_record.token,
@@ -83,8 +83,9 @@ impl StorageTrait for SqliteStorage {
         let mut accounts = HashMap::new();
         let encryption = Encryption::default();
         for rec in self.secure_records.iter() {
-            let account_name = rec.account.clone().unwrap_or_default();
             let record = Record::from_secure_record(rec, &encryption, self.db.password())?;
+            let account_name = record.account.clone().unwrap_or_default();
+
             accounts.insert(account_name, record);
         }
         Ok(accounts)

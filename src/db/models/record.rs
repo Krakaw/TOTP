@@ -4,10 +4,11 @@ use crate::storage::accounts::AccountName;
 use crate::{Token, TotpError};
 use chrono::{NaiveDateTime, Utc};
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 use std::fmt::{Display, Formatter};
 
 // TODO: Remove Serialize and Deserialize
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Record {
     pub id: u32,
     pub account: Option<AccountName>,
@@ -58,7 +59,7 @@ impl Record {
             account: decrypt_record_field(secure_record.account.as_ref(), password, encryption),
             user: decrypt_record_field(secure_record.user.as_ref(), password, encryption),
             token: decrypt_record_field(secure_record.token.as_ref(), password, encryption)
-                .map(|t| t.parse::<Token>())
+                .map(|t| serde_json::from_str(&t))
                 .and_then(|t| t.ok()),
             password: decrypt_record_field(secure_record.password.as_ref(), password, encryption),
             note: decrypt_record_field(secure_record.note.as_ref(), password, encryption),
@@ -76,7 +77,15 @@ impl Record {
             id: self.id,
             account: encrypt_record_field(self.account.as_ref(), password, encryption),
             user: encrypt_record_field(self.user.as_ref(), password, encryption),
-            token: encrypt_record_field(self.token.as_ref(), password, encryption),
+            token: encrypt_record_field(
+                self.token
+                    .as_ref()
+                    .map(|token| serde_json::to_string(token))
+                    .and_then(|r| r.ok())
+                    .as_ref(),
+                password,
+                encryption,
+            ),
             password: encrypt_record_field(self.password.as_ref(), password, encryption),
             note: encrypt_record_field(self.note.as_ref(), password, encryption),
             created_at: self.created_at,

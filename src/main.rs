@@ -153,7 +153,7 @@ fn main() -> Result<(), TotpError> {
     let db = Db::new(password.clone(), Some(cli.sqlite_path.into()))?;
     db.init()?;
     let mut storage = db::storage::sqlite::SqliteStorage::new(db);
-
+    storage.load()?;
     // let mut storage = Storage::new(password, Some(cli.filename))?;
     let command = match &cli.command {
         Some(command) => command,
