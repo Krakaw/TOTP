@@ -5,9 +5,12 @@ pub type TotpAccountName = String;
 pub type TotpCode = String;
 type ExpirySeconds = u64;
 type RecordId = u32;
+
+#[derive(PartialEq)]
 pub enum InputMode {
     Normal,
     Input,
+    Details,
     AddOtp,
 }
 
@@ -32,6 +35,7 @@ impl Default for State {
             input_mode: InputMode::default(),
             filter: String::new(),
             items: vec![],
+            records: vec![],
             display_otps: vec![],
             running: true,
         }
