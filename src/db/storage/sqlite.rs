@@ -19,10 +19,6 @@ impl SqliteStorage {
             secure_records: vec![],
         }
     }
-
-    pub fn connection(&self) -> Result<Connection, TotpError> {
-        Connection::try_from(&self.db)
-    }
 }
 
 impl StorageTrait for SqliteStorage {
@@ -45,7 +41,7 @@ impl StorageTrait for SqliteStorage {
             .collect::<Vec<_>>())
     }
 
-    fn add_account(&self, record: Record) -> Result<(), TotpError> {
+    fn add_account(&mut self, record: Record) -> Result<(), TotpError> {
         let secure_record = record.to_secure_record(&Encryption::default(), self.db.password())?;
         const SQL: &str = r#"
         INSERT INTO secure_records
@@ -61,7 +57,7 @@ impl StorageTrait for SqliteStorage {
              strftime('%s','now')
             );
         "#;
-        let conn = self.connection()?;
+        let conn = Connection::try_from(&self.db)?;
         let mut stmt = conn.prepare(SQL)?;
         stmt.execute(params![
             secure_record.account,
@@ -70,6 +66,7 @@ impl StorageTrait for SqliteStorage {
             secure_record.password,
             secure_record.note,
         ])?;
+        self.load()?;
         Ok(())
     }
 
@@ -117,6 +114,8 @@ impl StorageTrait for SqliteStorage {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+    use crate::Token;
     use std::env::temp_dir;
     use std::str::FromStr;
     use std::time::{SystemTime, UNIX_EPOCH};
@@ -128,78 +127,97 @@ mod tests {
             .subsec_nanos()
     }
 
-    fn get_filename() -> String {
-        let mut dir = temp_dir();
-        dir.push(format!(".test.storage.{}.txt", rand()));
-        dir.to_string_lossy().to_string()
-    }
-
-    #[test]
-    fn tokens_ignore_case() {
-        let token_string = "jbswy3dpehpk3pxp";
-        let token: Token = token_string.parse().unwrap();
-        assert_eq!(token, Token::from_str("JBSWY3DPEHPK3PXP").unwrap());
+    fn get_storage() -> SqliteStorage {
+        let db = Db::new(
+            "password".to_string(),
+            Some(format!("file:memdb{}?mode=memory&cache=shared", rand())),
+        )
+        .unwrap();
+        db.init().unwrap();
+        SqliteStorage::new(db)
     }
 
     #[test]
     fn add_account() {
-        let filename = get_filename();
-        let mut storage = Storage::new("password".to_string(), Some(filename.clone())).unwrap();
-        assert_eq!(storage.to_iter().len(), 0);
+        let mut storage = get_storage();
+        assert_eq!(storage.accounts().unwrap().iter().len(), 0);
         storage
-            .add_account(
-                "Account1".to_string(),
-                Token::from_str("JBSWY3DPEHPK3PXP").unwrap(),
-            )
+            .add_account(Record {
+                account: Some("Account1".to_string()),
+                token: Some(Token::from_str("JBSWY3DPEHPK3PXP").unwrap()),
+                ..Record::default()
+            })
             .unwrap();
-        assert_eq!(storage.to_iter().len(), 1);
-        let storage = Storage::new("password".to_string(), Some(filename.clone())).unwrap();
-        assert_eq!(storage.to_iter().len(), 1);
-        let _ = std::fs::remove_file(filename);
+        assert_eq!(storage.accounts().unwrap().iter().len(), 1);
     }
 
     #[test]
     fn delete_account() {
-        let filename = get_filename();
-        let mut storage = Storage::new("password".to_string(), Some(filename.clone())).unwrap();
-        assert_eq!(storage.to_iter().len(), 0);
+        let mut storage = get_storage();
+        assert_eq!(storage.accounts().unwrap().iter().len(), 0);
         storage
-            .add_account(
-                "Account1".to_string(),
-                Token::from_str("JBSWY3DPEHPK3PXP").unwrap(),
-            )
+            .add_account(Record {
+                account: Some("Account1".to_string()),
+                token: Some(Token::from_str("JBSWY3DPEHPK3PXP").unwrap()),
+                ..Record::default()
+            })
             .unwrap();
-        assert_eq!(storage.to_iter().len(), 1);
+        assert_eq!(storage.accounts().unwrap().iter().len(), 1);
         storage
-            .add_account(
-                "Account2".to_string(),
-                Token::from_str("JBSWY3DPEHPK3PXP").unwrap(),
-            )
+            .add_account(Record {
+                account: Some("Account2".to_string()),
+                token: Some(Token::from_str("JBSWY3DPEHPK3PXP").unwrap()),
+                ..Record::default()
+            })
             .unwrap();
-        assert_eq!(storage.to_iter().len(), 2);
-        storage.remove_account("Account1".into()).unwrap();
-        assert_eq!(storage.to_iter().len(), 1);
-        let _ = std::fs::remove_file(filename);
+        assert_eq!(storage.accounts().unwrap().iter().len(), 2);
+        storage.remove_account("Account2".to_string()).unwrap();
+        assert_eq!(storage.accounts().unwrap().iter().len(), 1);
+        storage.remove_account("1".to_string()).unwrap();
+        assert_eq!(storage.accounts().unwrap().iter().len(), 0);
     }
 
     #[test]
     fn get_account_token() {
-        let filename = get_filename();
-        let mut storage = Storage::new("password".to_string(), Some(filename.clone())).unwrap();
+        let mut storage = get_storage();
         storage
-            .add_account(
-                "Account1".to_string(),
-                Token::from_str("JBSWY3DPEHPK3PXP").unwrap(),
-            )
+            .add_account(Record {
+                account: Some("Account1".to_string()),
+                token: Some(Token::from_str("JBSWY3DPEHPK3PXP").unwrap()),
+                ..Record::default()
+            })
             .unwrap();
         storage
-            .add_account("Account2".to_string(), Token::from_str("KRSXG5A=").unwrap())
+            .add_account(Record {
+                account: Some("Account2".to_string()),
+                token: Some(Token::from_str("KRSXG5A=").unwrap()),
+                ..Record::default()
+            })
             .unwrap();
-        let (_, token) = storage.search_account("Account2".into()).unwrap();
-        assert_eq!(token.to_string(), "KRSXG5A=".to_string());
-        let token = storage.search_account("Account3".into());
-        assert!(token.is_err());
 
-        let _ = std::fs::remove_file(filename);
+        let record = storage.search_account("Account2").unwrap();
+        assert_eq!(record.token.unwrap().to_string(), "KRSXG5A=".to_string());
+        let token = storage.search_account("Account3");
+        assert!(token.is_err());
     }
+    // #[test]
+    // fn get_account_token() {
+    //     let filename = get_filename();
+    //     let mut storage = Storage::new("password".to_string(), Some(filename.clone())).unwrap();
+    //     storage
+    //         .add_account(
+    //             "Account1".to_string(),
+    //             Token::from_str("JBSWY3DPEHPK3PXP").unwrap(),
+    //         )
+    //         .unwrap();
+    //     storage
+    //         .add_account("Account2".to_string(), Token::from_str("KRSXG5A=").unwrap())
+    //         .unwrap();
+    //     let (_, token) = storage.search_account("Account2".into()).unwrap();
+    //     assert_eq!(token.to_string(), "KRSXG5A=".to_string());
+    //     let token = storage.search_account("Account3".into());
+    //     assert!(token.is_err());
+    //
+    //     let _ = std::fs::remove_file(filename);
+    // }
 }

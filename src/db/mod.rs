@@ -1,5 +1,4 @@
 #![allow(clippy::large_enum_variant)]
-use std::path::PathBuf;
 use std::sync::Arc;
 
 use crate::TotpError;
@@ -19,7 +18,7 @@ pub struct Db {
 }
 
 impl Db {
-    pub fn new(password: String, connection_string: Option<PathBuf>) -> Result<Self, TotpError> {
+    pub fn new(password: String, connection_string: Option<String>) -> Result<Self, TotpError> {
         let sqlite_connection_manager = if let Some(connection_string) = connection_string {
             SqliteConnectionManager::file(connection_string)
         } else {
