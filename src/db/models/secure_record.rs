@@ -1,11 +1,9 @@
+use crate::db::models::record::AccountName;
 use crate::db::Connection;
-use crate::storage::accounts::AccountName;
-use crate::{Token, TotpError};
+use crate::TotpError;
 use chrono::NaiveDateTime;
 use r2d2_sqlite::rusqlite::{params, Row};
 use serde::{Deserialize, Serialize};
-use std::fmt;
-use std::fmt::{Display, Formatter};
 
 type EncryptedString = String;
 #[derive(Clone, Debug, Serialize, Deserialize)]

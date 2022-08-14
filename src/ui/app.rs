@@ -1,5 +1,5 @@
 use crate::ui::state::{InputMode, State};
-use crate::{Storage, StorageTrait, TotpError};
+use crate::{StorageTrait, TotpError};
 #[cfg(feature = "cli-clipboard")]
 use cli_clipboard::set_contents;
 use tui::widgets::{ListState, TableState};

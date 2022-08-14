@@ -32,7 +32,7 @@ pub fn render<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>, rect: Rect) {
                 ("N/A".to_string(), 0)
             };
 
-            (account_name.to_string(), code, expiry, record_id.clone())
+            (account_name.to_string(), code, expiry, *record_id)
         })
         .collect::<Vec<_>>();
     app.state.display_otps = display_rows.clone();

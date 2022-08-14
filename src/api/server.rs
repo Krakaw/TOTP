@@ -1,5 +1,5 @@
 use crate::db::models::record::Record;
-use crate::{Generator, Storage, StorageTrait, Token, TotpError};
+use crate::{Generator, StorageTrait, Token, TotpError};
 use serde_json::json;
 use std::net::SocketAddr;
 use std::str::FromStr;
@@ -37,26 +37,22 @@ where
                 .map_err(|e| TotpError::Utf8(e.to_string()))?;
             let account_token_result =
                 self.storage
-                    .search_account(decoded.to_string())
+                    .search_account(&decoded.to_string())
                     .or_else(|_e| {
                         Token::from_str(&account_or_secret)
                             .map(|token| ("Secret".to_string(), token))
-                            .and_then(|(account_name, token)| {
-                                Ok((
-                                    account_name,
-                                    Record {
-                                        token: Some(token),
-                                        ..Record::default()
-                                    },
-                                ))
+                            .map(|(account_name, token)| Record {
+                                account: Some(account_name),
+                                token: Some(token),
+                                ..Record::default()
                             })
                     });
 
-            let result = if let Ok((account_name, secure_data)) = account_token_result {
-                if let Some(token) = secure_data.token {
+            let result = if let Ok(record) = account_token_result {
+                if let Some(token) = record.token {
                     if let Ok(generator) = Generator::new(token) {
                         let (code, expiry) = generator.generate(None)?;
-                        json!({"account_name": account_name, "code": code, "expiry": expiry})
+                        json!({"account_name": record.account, "code": code, "expiry": expiry})
                     } else {
                         json!({"error": "Failed to create generator"})
                     }

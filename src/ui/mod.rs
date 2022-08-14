@@ -1,4 +1,4 @@
-use crate::{App, Event, EventHandler, Storage, StorageTrait, TotpError, Tui};
+use crate::{App, Event, EventHandler, StorageTrait, TotpError, Tui};
 use ::tui::backend::CrosstermBackend;
 use ::tui::Terminal;
 use std::io;

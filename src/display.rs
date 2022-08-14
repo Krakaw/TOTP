@@ -1,4 +1,4 @@
-use crate::{Generator, Storage, StorageTrait, TotpError};
+use crate::{Generator, StorageTrait, TotpError};
 use chrono::NaiveDateTime;
 use std::io::stdout;
 use std::io::Write;

@@ -7,7 +7,6 @@ use crate::db::models::record::Record;
 use crate::db::Db;
 use crate::display::{Display, OutputFormat};
 use crate::errors::TotpError;
-use crate::storage::accounts::Storage;
 use crate::ui::app::App;
 use crate::ui::event_handler::{Event, EventHandler};
 use crate::ui::tui::Tui;
@@ -25,7 +24,6 @@ mod db;
 mod display;
 mod errors;
 mod otp;
-mod storage;
 mod ui;
 
 /// A CLI and TUI TOTP manager
@@ -142,7 +140,7 @@ fn main() -> Result<(), TotpError> {
         }
     };
 
-    let db = Db::new(password.clone(), Some(cli.sqlite_path.into()))?;
+    let db = Db::new(password, Some(cli.sqlite_path.into()))?;
     db.init()?;
     let mut storage = db::storage::sqlite::SqliteStorage::new(db);
     storage.load()?;
@@ -162,16 +160,12 @@ fn main() -> Result<(), TotpError> {
             skew,
             step,
         } => {
-            let token = if let Some(secret) = secret {
-                Some(Token {
-                    secret: secret.secret.clone(),
-                    digits: *digits,
-                    skew: *skew,
-                    step: *step,
-                })
-            } else {
-                None
-            };
+            let token = secret.as_ref().map(|secret| Token {
+                secret: secret.secret.clone(),
+                digits: *digits,
+                skew: *skew,
+                step: *step,
+            });
 
             let record = Record {
                 account: Some(account.to_string()),

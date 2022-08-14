@@ -1,5 +1,5 @@
-use crate::storage::accounts::AccountName;
-use crate::{Generator, Record, Storage, StorageTrait, TotpError};
+use crate::db::models::record::AccountName;
+use crate::{Generator, Record, StorageTrait, TotpError};
 
 pub type TotpAccountName = String;
 pub type TotpCode = String;

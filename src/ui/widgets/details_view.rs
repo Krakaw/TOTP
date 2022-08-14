@@ -17,7 +17,7 @@ pub fn render<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>, rect: Rect) {
                 let mut password =
                     Text::styled("Password:\n", Style::default().add_modifier(Modifier::DIM));
                 password.extend(Text::styled(
-                    record.clone().password.unwrap_or(" ".to_string()),
+                    record.clone().password.unwrap_or_else(|| " ".to_string()),
                     Style::default()
                         .fg(Color::Yellow)
                         .add_modifier(Modifier::BOLD),
@@ -28,7 +28,7 @@ pub fn render<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>, rect: Rect) {
                 let mut username =
                     Text::styled("Username:\n", Style::default().add_modifier(Modifier::DIM));
                 username.extend(Text::styled(
-                    record.clone().user.unwrap_or(" ".to_string()),
+                    record.clone().user.unwrap_or_else(|| " ".to_string()),
                     Style::default()
                         .fg(Color::Yellow)
                         .add_modifier(Modifier::BOLD),
@@ -39,7 +39,7 @@ pub fn render<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>, rect: Rect) {
                 let mut note =
                     Text::styled("Note:\n", Style::default().add_modifier(Modifier::DIM));
                 note.extend(Text::styled(
-                    record.clone().note.unwrap_or(" ".to_string()),
+                    record.clone().note.unwrap_or_else(|| " ".to_string()),
                     Style::default()
                         .fg(Color::Yellow)
                         .add_modifier(Modifier::BOLD),

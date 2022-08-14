@@ -1,11 +1,11 @@
 use crate::db::encryption::Encryption;
 use crate::db::models::secure_record::SecureRecord;
-use crate::storage::accounts::AccountName;
 use crate::{Token, TotpError};
 use chrono::{NaiveDateTime, Utc};
 use serde::{Deserialize, Serialize};
-use serde_json::json;
 use std::fmt::{Display, Formatter};
+
+pub type AccountName = String;
 
 // TODO: Remove Serialize and Deserialize
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -28,7 +28,7 @@ impl Display for Record {
             self.token
                 .as_ref()
                 .map(|t| t.to_string())
-                .unwrap_or("N/A".to_string())
+                .unwrap_or_else(|| "N/A".to_string())
         )
     }
 }
@@ -80,7 +80,7 @@ impl Record {
             token: encrypt_record_field(
                 self.token
                     .as_ref()
-                    .map(|token| serde_json::to_string(token))
+                    .map(serde_json::to_string)
                     .and_then(|r| r.ok())
                     .as_ref(),
                 password,
@@ -101,14 +101,13 @@ fn decrypt_record_field<T: Display>(
     field
         .map(|value| {
             let mut parts = value
-                .clone()
                 .to_string()
                 .splitn(2, ':')
                 .map(|s| s.to_string())
                 .collect::<Vec<String>>()
                 .into_iter();
-            let content = parts.next().unwrap_or_default().to_string();
-            let iv = parts.next().unwrap_or_default().to_string();
+            let content = parts.next().unwrap_or_default();
+            let iv = parts.next().unwrap_or_default();
             (content, iv)
         })
         .map(|(content, iv)| encryption.decrypt(&content, password, &iv))
