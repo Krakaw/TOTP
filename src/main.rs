@@ -119,7 +119,7 @@ fn main() -> Result<(), TotpError> {
         }
     };
 
-    let db = Db::new(password, Some(cli.sqlite_path.into()))?;
+    let db = Db::new(password, Some(cli.sqlite_path))?;
     db.init()?;
     let mut storage = db::storage::sqlite::SqliteStorage::new(db);
     storage.load()?;

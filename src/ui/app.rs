@@ -1,4 +1,4 @@
-use crate::ui::state::{InputMode, State};
+use crate::ui::state::{ActivePane, State};
 use crate::ui::widgets::popup::Popup;
 use crate::{StorageTrait, TotpError};
 use chrono::Utc;
@@ -34,34 +34,32 @@ impl App {
     }
 
     pub fn move_down(&mut self) {
-        match self.state.input_mode {
-            InputMode::Normal | InputMode::Input => {
+        match self.state.active_pane {
+            ActivePane::OtpTable => {
                 let selected_index =
                     self.move_down_list(self.table_state.selected(), &self.state.display_otps);
                 self.table_state.select(selected_index);
             }
-            InputMode::Details => {
+            ActivePane::DetailView => {
                 let selected_index =
                     self.move_down_list(self.detail_state.selected(), &vec![0, 0, 0]);
                 self.detail_state.select(selected_index);
             }
-            _ => {}
         }
     }
 
     pub fn move_up(&mut self) {
-        match self.state.input_mode {
-            InputMode::Normal | InputMode::Input => {
+        match self.state.active_pane {
+            ActivePane::OtpTable => {
                 let selected_index =
                     self.move_up_list(self.table_state.selected(), &self.state.display_otps);
                 self.table_state.select(selected_index);
             }
-            InputMode::Details => {
+            ActivePane::DetailView => {
                 let selected_index =
                     self.move_up_list(self.detail_state.selected(), &vec![0, 0, 0]);
                 self.detail_state.select(selected_index);
             }
-            _ => {}
         }
     }
 
@@ -94,19 +92,19 @@ impl App {
     }
 
     pub fn toggle_list_detail_mode(&mut self) {
-        if self.state.input_mode == InputMode::Normal {
-            self.state.input_mode = InputMode::Details;
+        if self.state.active_pane == ActivePane::OtpTable {
+            self.state.active_pane = ActivePane::DetailView;
             self.detail_state.select(Some(0));
-        } else if self.state.input_mode == InputMode::Details {
-            self.state.input_mode = InputMode::Normal;
+        } else {
+            self.state.active_pane = ActivePane::OtpTable;
             self.detail_state.select(None);
         }
     }
 
     pub fn set_clipboard(&mut self) {
         #[cfg(feature = "cli-clipboard")]
-        match self.state.input_mode {
-            InputMode::Normal | InputMode::Input => {
+        match self.state.active_pane {
+            ActivePane::OtpTable => {
                 if let Some(i) = self.table_state.selected() {
                     self.state.show_popup = Some(Popup::new(
                         "OTP Copied".to_string(),
@@ -119,7 +117,7 @@ impl App {
                         .expect("Failed to copy to clipboard");
                 }
             }
-            InputMode::Details => {
+            ActivePane::DetailView => {
                 if let Some(i) = self.table_state.selected() {
                     let record_id = self.state.display_otps[i].3;
                     if let Some(record) = self.state.records.iter().find(|r| r.id == record_id) {
@@ -150,7 +148,6 @@ impl App {
                     }
                 }
             }
-            InputMode::AddOtp => {}
         }
     }
 }

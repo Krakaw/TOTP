@@ -1,14 +1,20 @@
 use crate::ui::app::App;
-use crate::ui::state::InputMode;
+use crate::ui::state::ActivePane;
 use tui::backend::Backend;
 use tui::layout::{Constraint, Rect};
 use tui::style::{Color, Modifier, Style};
-use tui::widgets::{Block, Borders, Cell, Row, Table};
+use tui::widgets::{Block, BorderType, Borders, Cell, Row, Table};
 use tui::Frame;
 
 pub fn render<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>, rect: Rect) {
+    let border_type = if app.state.active_pane == ActivePane::OtpTable {
+        BorderType::Thick
+    } else {
+        BorderType::Plain
+    };
+
     let mut selected_style = Style::default().add_modifier(Modifier::REVERSED);
-    if app.state.input_mode == InputMode::Details {
+    if app.state.active_pane == ActivePane::DetailView {
         selected_style = selected_style.add_modifier(Modifier::DIM);
     }
     let normal_style = Style::default().bg(Color::Gray);
@@ -62,7 +68,12 @@ pub fn render<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>, rect: Rect) {
 
     let t = Table::new(rows)
         .header(header)
-        .block(Block::default().borders(Borders::ALL).title("TOTP"))
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .title("TOTP")
+                .border_type(border_type),
+        )
         .highlight_style(selected_style)
         .highlight_symbol("> ")
         .widths(&[

@@ -3,13 +3,23 @@ use crate::ui::state::InputMode;
 use tui::backend::Backend;
 use tui::layout::Rect;
 use tui::style::{Color, Style};
-use tui::widgets::{Block, Borders, Paragraph};
+use tui::widgets::{Block, BorderType, Borders, Paragraph};
 use tui::Frame;
 
 pub fn render<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>, rect: Rect) {
+    let border_type = if app.state.input_mode == InputMode::Input {
+        BorderType::Thick
+    } else {
+        BorderType::Plain
+    };
     let input = Paragraph::new(app.state.filter.as_ref())
         .style(Style::default().fg(Color::Yellow))
-        .block(Block::default().borders(Borders::ALL).title("Filter"));
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .title("Filter")
+                .border_type(border_type),
+        );
     match app.state.input_mode {
         InputMode::Input => {
             frame.set_cursor(
@@ -20,8 +30,6 @@ pub fn render<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>, rect: Rect) {
             );
         }
         InputMode::Normal => {}
-        InputMode::AddOtp => {}
-        InputMode::Details => {}
     }
     frame.render_widget(input, rect);
 }

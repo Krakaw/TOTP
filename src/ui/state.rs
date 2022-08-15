@@ -11,8 +11,6 @@ type RecordId = u32;
 pub enum InputMode {
     Normal,
     Input,
-    Details,
-    AddOtp,
 }
 
 impl Default for InputMode {
@@ -21,8 +19,20 @@ impl Default for InputMode {
     }
 }
 
+#[derive(PartialEq)]
+pub enum ActivePane {
+    OtpTable,
+    DetailView,
+}
+
+impl Default for ActivePane {
+    fn default() -> Self {
+        ActivePane::OtpTable
+    }
+}
 pub struct State {
     pub input_mode: InputMode,
+    pub active_pane: ActivePane,
     pub filter: String,
     pub items: Vec<(AccountName, Option<Generator>, RecordId)>,
     pub records: Vec<Record>,
@@ -35,6 +45,7 @@ impl Default for State {
     fn default() -> Self {
         Self {
             input_mode: InputMode::default(),
+            active_pane: ActivePane::default(),
             filter: String::new(),
             items: vec![],
             records: vec![],

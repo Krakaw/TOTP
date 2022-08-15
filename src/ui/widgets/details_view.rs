@@ -1,21 +1,28 @@
 use crate::ui::app::App;
-use crate::ui::state::InputMode;
+use crate::ui::state::ActivePane;
 use tui::backend::Backend;
 use tui::layout::Rect;
 use tui::style::{Color, Modifier, Style};
 use tui::text::Text;
-use tui::widgets::{Block, Borders, List, ListItem};
+use tui::widgets::{Block, BorderType, Borders, List, ListItem};
 use tui::Frame;
 
 pub fn render<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>, rect: Rect) {
-    let mut block = Block::default().borders(Borders::ALL);
+    let border_type = if app.state.active_pane == ActivePane::DetailView {
+        BorderType::Thick
+    } else {
+        BorderType::Plain
+    };
+    let mut block = Block::default()
+        .borders(Borders::ALL)
+        .border_type(border_type);
     let mut list_items = vec![];
     if let Some(selected) = app.table_state.selected() {
         if let Some((_, _, _, record_id)) = app.state.display_otps.get(selected) {
             if let Some(record) = app.state.records.iter().find(|r| &r.id == record_id) {
                 block = block.title(record.account.clone().unwrap_or_default());
 
-                let hidden = app.state.input_mode != InputMode::Details;
+                let hidden = app.state.active_pane != ActivePane::DetailView;
                 let frame_size = frame.size().width as usize;
                 list_items.push(list_item(
                     "Password",
