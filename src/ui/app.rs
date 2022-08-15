@@ -128,15 +128,15 @@ impl App {
                         let (value, content) = match detail_selected_index {
                             1 => (
                                 record.user.clone().unwrap_or_default(),
-                                "Successfully Username Copied",
+                                "Successfully copied username",
                             ),
                             2 => (
                                 record.note.clone().unwrap_or_default(),
-                                "Successfully Note Copied",
+                                "Successfully copied note",
                             ),
                             _ => (
                                 record.password.clone().unwrap_or_default(),
-                                "Successfully Password Copied",
+                                "Successfully copied password",
                             ),
                         };
                         self.state.show_popup = Some(Popup::new(

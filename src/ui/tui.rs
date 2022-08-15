@@ -63,7 +63,7 @@ fn render<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>) {
         filter_input::render(app, frame, rects[0]);
         let body_rects = Layout::default()
             .direction(Direction::Horizontal)
-            .constraints([Constraint::Percentage(90), Constraint::Percentage(10)].as_ref())
+            .constraints([Constraint::Percentage(70), Constraint::Percentage(30)].as_ref())
             .margin(0)
             .split(rects[1]);
         otp_table::render(app, frame, body_rects[0]);
