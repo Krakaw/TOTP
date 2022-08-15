@@ -16,7 +16,6 @@ use db::storage::StorageTrait;
 use env_logger::Env;
 use otp::generator::Generator;
 use otp::token::Token;
-use passwords::PasswordGenerator;
 use rpassword::read_password;
 
 mod api;
@@ -141,7 +140,6 @@ fn main() -> Result<(), TotpError> {
     db.init()?;
     let mut storage = db::storage::sqlite::SqliteStorage::new(db);
     storage.load()?;
-    // let mut storage = Storage::new(password, Some(cli.filename))?;
     let command = match &cli.command {
         Some(command) => command,
         None => &Commands::Interactive {},
@@ -204,9 +202,7 @@ fn main() -> Result<(), TotpError> {
             );
         }
         Commands::Dump => {
-            // for (a, t) in storage.to_iter() {
-            //     println!("{}\t{}", a, t);
-            // }
+            println!("{}", serde_json::to_string(&storage.accounts()?)?);
         }
         Commands::Interactive => {
             ui::init(storage)?;

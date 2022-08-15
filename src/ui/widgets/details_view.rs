@@ -1,6 +1,5 @@
 use crate::ui::app::App;
 use crate::ui::state::InputMode;
-use crate::Record;
 use tui::backend::Backend;
 use tui::layout::Rect;
 use tui::style::{Color, Modifier, Style};

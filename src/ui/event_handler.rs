@@ -54,7 +54,7 @@ impl EventHandler {
                             CrosstermEvent::Resize(w, h) => sender.send(Event::Resize(w, h)),
                             CrosstermEvent::FocusGained
                             | CrosstermEvent::FocusLost
-                            | CrosstermEvent::Paste(_) => todo!(),
+                            | CrosstermEvent::Paste(_) => Ok(()),
                         }
                         .map_err(|_| UiEvent("Failed to send UI event".to_string()))
                         .expect("Failed to send UI event")

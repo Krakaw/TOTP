@@ -1,4 +1,5 @@
 use crate::db::models::record::AccountName;
+use crate::ui::widgets::popup::Popup;
 use crate::{Generator, Record, StorageTrait, TotpError};
 
 pub type TotpAccountName = String;
@@ -27,6 +28,7 @@ pub struct State {
     pub records: Vec<Record>,
     pub display_otps: Vec<(TotpAccountName, TotpCode, ExpirySeconds, RecordId)>,
     pub running: bool,
+    pub show_popup: Option<Popup>,
 }
 
 impl Default for State {
@@ -38,6 +40,7 @@ impl Default for State {
             records: vec![],
             display_otps: vec![],
             running: true,
+            show_popup: None,
         }
     }
 }

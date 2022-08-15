@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 #![allow(clippy::large_enum_variant)]
 use std::sync::Arc;
 

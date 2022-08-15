@@ -1,9 +1,13 @@
 use crate::ui::state::{InputMode, State};
+use crate::ui::widgets::popup::Popup;
 use crate::{StorageTrait, TotpError};
+use chrono::Utc;
 #[cfg(feature = "cli-clipboard")]
 use cli_clipboard::set_contents;
+use std::ops::Add;
 use tui::widgets::{ListState, TableState};
 
+const POPUP_DELAY: i64 = 750;
 pub struct App {
     /// Application State
     pub state: State,
@@ -21,7 +25,13 @@ impl App {
         })
     }
 
-    pub fn tick(&mut self) {}
+    pub fn tick(&mut self) {
+        if let Some(popup) = self.state.show_popup.as_ref() {
+            if popup.show_until < Utc::now().naive_utc() {
+                self.state.show_popup = None;
+            }
+        }
+    }
 
     pub fn move_down(&mut self) {
         match self.state.input_mode {
@@ -95,9 +105,52 @@ impl App {
 
     pub fn set_clipboard(&mut self) {
         #[cfg(feature = "cli-clipboard")]
-        if let Some(i) = self.table_state.selected() {
-            set_contents(self.state.display_otps[i].1.clone())
-                .expect("Failed to copy to clipboard");
+        match self.state.input_mode {
+            InputMode::Normal | InputMode::Input => {
+                if let Some(i) = self.table_state.selected() {
+                    self.state.show_popup = Some(Popup::new(
+                        "OTP Copied".to_string(),
+                        "Successfully copied OTP".to_string(),
+                        Utc::now()
+                            .add(chrono::Duration::milliseconds(POPUP_DELAY))
+                            .naive_utc(),
+                    ));
+                    set_contents(self.state.display_otps[i].1.clone())
+                        .expect("Failed to copy to clipboard");
+                }
+            }
+            InputMode::Details => {
+                if let Some(i) = self.table_state.selected() {
+                    let record_id = self.state.display_otps[i].3;
+                    if let Some(record) = self.state.records.iter().find(|r| r.id == record_id) {
+                        let detail_selected_index =
+                            self.detail_state.selected().unwrap_or_default();
+                        let (value, content) = match detail_selected_index {
+                            1 => (
+                                record.user.clone().unwrap_or_default(),
+                                "Successfully Username Copied",
+                            ),
+                            2 => (
+                                record.note.clone().unwrap_or_default(),
+                                "Successfully Note Copied",
+                            ),
+                            _ => (
+                                record.password.clone().unwrap_or_default(),
+                                "Successfully Password Copied",
+                            ),
+                        };
+                        self.state.show_popup = Some(Popup::new(
+                            "Detail Copied".to_string(),
+                            content.to_string(),
+                            Utc::now()
+                                .add(chrono::Duration::milliseconds(POPUP_DELAY))
+                                .naive_utc(),
+                        ));
+                        set_contents(value).expect("Failed to copy to clipboard");
+                    }
+                }
+            }
+            InputMode::AddOtp => {}
         }
     }
 }
