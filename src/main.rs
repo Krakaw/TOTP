@@ -33,9 +33,6 @@ struct Cli {
     /// The encryption password
     #[clap(short, long)]
     password: Option<String>,
-    /// The storage filename
-    #[clap(short, long, default_value = ".storage.txt")]
-    filename: String,
     /// The sqlite filename
     #[clap(short, long, default_value = ".totp.sqlite3")]
     sqlite_path: String,

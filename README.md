@@ -22,18 +22,18 @@ trotp --help
 ```
 
 ```
-trotp 0.1.1
+trotp 1.0.0
 Krakaw <41575888+Krakaw@users.noreply.github.com>
-A CLI and TUI TOTP manager
+TUI TOTP generator
 
 USAGE:
-    totp [OPTIONS] [SUBCOMMAND]
+    trotp [OPTIONS] [SUBCOMMAND]
 
 OPTIONS:
-    -f, --filename <FILENAME>    The storage filename [default: .storage.txt]
-    -h, --help                   Print help information
-    -p, --password <PASSWORD>    The encryption password
-    -V, --version                Print version information
+    -h, --help                         Print help information
+    -p, --password <PASSWORD>          The encryption password
+    -s, --sqlite-path <SQLITE_PATH>    The sqlite filename [default: .totp.sqlite3]
+    -V, --version                      Print version information
 
 SUBCOMMANDS:
     add            Add a new account
@@ -48,7 +48,7 @@ SUBCOMMANDS:
 
 ### Add accounts
 
-    tortp -p password add -a AccountName -s SecretToken
+    tortp -p password add -a AccountName -s SecretToken -u Username -p Password123 -n Note
 
 ### Delete an account
 
@@ -78,6 +78,7 @@ SUBCOMMANDS:
 |-------------|-------------------------|
 | `/`         | Switch to insert mode   |
 | `Esc`       | Switch to normal mode   |
+| `Tab`       | Toggle password mode    |
 | `Ctrl-c`    | Exit                    |
 | `Down`      | Select next account     |
 | `Up`        | Select previous account |
