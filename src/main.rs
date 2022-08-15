@@ -5,12 +5,11 @@ use std::net::SocketAddr;
 
 use crate::db::models::record::Record;
 use crate::db::Db;
-use crate::display::{Display, OutputFormat};
 use crate::errors::TotpError;
 use crate::ui::app::App;
 use crate::ui::event_handler::{Event, EventHandler};
 use crate::ui::tui::Tui;
-use chrono::{DateTime, FixedOffset, NaiveDateTime};
+use chrono::{DateTime, FixedOffset};
 use clap::{Parser, Subcommand};
 use db::storage::StorageTrait;
 use env_logger::Env;
@@ -20,7 +19,6 @@ use rpassword::read_password;
 
 mod api;
 mod db;
-mod display;
 mod errors;
 mod otp;
 mod ui;
@@ -83,21 +81,6 @@ enum Commands {
     },
     /// Run in interactive mode [default]
     Interactive,
-    /// Generate an OTP
-    Generate {
-        /// Account name
-        #[clap(short, long)]
-        account: Option<String>,
-        /// Time of token
-        #[clap(short, long)]
-        time: Option<NaiveDateTime>,
-        /// Run on a loop
-        #[clap(short, long)]
-        repeat: bool,
-        /// Output format
-        #[clap(short, long, default_value = "long")]
-        format: OutputFormat,
-    },
     /// Check an OTP
     Check {
         /// Secret token for key
@@ -175,15 +158,7 @@ fn main() -> Result<(), TotpError> {
         Commands::Delete { account } => {
             storage.remove_account(account.to_owned())?;
         }
-        Commands::Generate {
-            account,
-            time,
-            repeat,
-            format,
-        } => {
-            let display = Display { storage };
-            display.render(account, time, format, repeat)?;
-        }
+
         Commands::Check {
             token,
             otp,
