@@ -40,7 +40,6 @@ SUBCOMMANDS:
     check          Check an OTP
     delete         Delete an account
     dump           Dump the config file
-    generate       Generate an OTP
     help           Print this message or the help of the given subcommand(s)
     interactive    Run in interactive mode [default]
     serve          Start an HTTP Server
