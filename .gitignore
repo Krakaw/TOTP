@@ -1,3 +1,4 @@
 /target
 .storage.txt
 wasm-*
+*.sqlite3

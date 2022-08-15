@@ -1,4 +1,5 @@
 use crate::ui::app::App;
+use crate::ui::state::InputMode;
 use tui::backend::Backend;
 use tui::layout::{Constraint, Rect};
 use tui::style::{Color, Modifier, Style};
@@ -6,7 +7,10 @@ use tui::widgets::{Block, Borders, Cell, Row, Table};
 use tui::Frame;
 
 pub fn render<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>, rect: Rect) {
-    let selected_style = Style::default().add_modifier(Modifier::REVERSED);
+    let mut selected_style = Style::default().add_modifier(Modifier::REVERSED);
+    if app.state.input_mode == InputMode::Details {
+        selected_style = selected_style.add_modifier(Modifier::DIM);
+    }
     let normal_style = Style::default().bg(Color::Gray);
     let header_cells = ["Account", "OTP", "Expires In"]
         .iter()
@@ -19,22 +23,27 @@ pub fn render<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>, rect: Rect) {
         .state
         .items
         .iter()
-        .filter(|(account_name, _)| {
+        .filter(|(account_name, _, _record_id)| {
             app.state.filter.is_empty()
                 || account_name
                     .to_lowercase()
                     .contains(&app.state.filter.to_lowercase())
         })
-        .map(|(account_name, generator)| {
-            let (code, expiry) = generator.generate(None).unwrap();
-            (account_name.to_string(), code, expiry)
+        .map(|(account_name, generator, record_id)| {
+            let (code, expiry) = if let Some(generator) = generator {
+                generator.generate(None).unwrap()
+            } else {
+                ("N/A".to_string(), 0)
+            };
+
+            (account_name.to_string(), code, expiry, *record_id)
         })
         .collect::<Vec<_>>();
     app.state.display_otps = display_rows.clone();
     let rows = display_rows
         .iter()
         .cloned()
-        .map(|(account_name, code, expiry)| {
+        .map(|(account_name, code, expiry, _)| {
             let height = 1;
             let color = if expiry > 15 {
                 Color::Green
@@ -55,7 +64,7 @@ pub fn render<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>, rect: Rect) {
         .header(header)
         .block(Block::default().borders(Borders::ALL).title("TOTP"))
         .highlight_style(selected_style)
-        .highlight_symbol(">> ")
+        .highlight_symbol("> ")
         .widths(&[
             Constraint::Percentage(75),
             Constraint::Length(6),

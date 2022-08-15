@@ -21,6 +21,7 @@ pub fn render<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>, rect: Rect) {
         }
         InputMode::Normal => {}
         InputMode::AddOtp => {}
+        InputMode::Details => {}
     }
     frame.render_widget(input, rect);
 }

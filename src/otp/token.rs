@@ -60,3 +60,14 @@ impl FromStr for Token {
         })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn tokens_ignore_case() {
+        let token_string = "jbswy3dpehpk3pxp";
+        let token: Token = token_string.parse().unwrap();
+        assert_eq!(token, Token::from_str("JBSWY3DPEHPK3PXP").unwrap());
+    }
+}

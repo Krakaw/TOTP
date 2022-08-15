@@ -16,15 +16,25 @@ pub fn handle_key_events<B: Backend>(
         (KeyCode::Down, _) => app.move_down(),
         (KeyCode::Up, _) => app.move_up(),
         (KeyCode::Enter, _) => app.set_clipboard(),
+        (KeyCode::Tab, _) => app.toggle_list_detail_mode(),
         _ => {}
     };
     match app.state.input_mode {
         InputMode::Normal => handle_normal_mode(key_event, app),
         InputMode::Input => handle_input_mode(key_event, app),
         InputMode::AddOtp => handle_add_otp_mode(key_event, app),
+        InputMode::Details => handle_detail_view_mode(key_event, app),
     }
 
     Ok(())
+}
+
+pub fn handle_detail_view_mode(key_event: KeyEvent, app: &mut App) {
+    let code = key_event.code;
+    let modifiers = key_event.modifiers;
+    if let (KeyCode::Esc, _) = (code, modifiers) {
+        app.toggle_list_detail_mode()
+    }
 }
 
 pub fn handle_add_otp_mode(key_event: KeyEvent, app: &mut App) {

@@ -1,16 +1,21 @@
-use crate::{Generator, Storage, Token, TotpError};
+use crate::db::models::record::Record;
+use crate::{Generator, StorageTrait, Token, TotpError};
 use serde_json::json;
 use std::net::SocketAddr;
 use std::str::FromStr;
 use tiny_http::{Response, Server as TinyServer};
-pub struct Server {
+
+pub struct Server<T: StorageTrait> {
     listen: SocketAddr,
     server: TinyServer,
-    storage: Storage,
+    storage: T,
 }
 
-impl Server {
-    pub fn new(listen: SocketAddr, storage: Storage) -> Result<Self, TotpError> {
+impl<T> Server<T>
+where
+    T: StorageTrait,
+{
+    pub fn new(listen: SocketAddr, storage: T) -> Result<Self, TotpError> {
         let server = TinyServer::http(listen).map_err(|e| TotpError::HttpServer(e.to_string()))?;
         Ok(Self {
             listen,
@@ -32,18 +37,27 @@ impl Server {
                 .map_err(|e| TotpError::Utf8(e.to_string()))?;
             let account_token_result =
                 self.storage
-                    .search_accounts(decoded.to_string())
+                    .search_account(&decoded.to_string())
                     .or_else(|_e| {
                         Token::from_str(&account_or_secret)
                             .map(|token| ("Secret".to_string(), token))
+                            .map(|(account_name, token)| Record {
+                                account: Some(account_name),
+                                token: Some(token),
+                                ..Record::default()
+                            })
                     });
 
-            let result = if let Ok((account_name, token)) = account_token_result {
-                if let Ok(generator) = Generator::new(token) {
-                    let (code, expiry) = generator.generate(None)?;
-                    json!({"account_name": account_name, "code": code, "expiry": expiry})
+            let result = if let Ok(record) = account_token_result {
+                if let Some(token) = record.token {
+                    if let Ok(generator) = Generator::new(token) {
+                        let (code, expiry) = generator.generate(None)?;
+                        json!({"account_name": record.account, "code": code, "expiry": expiry})
+                    } else {
+                        json!({"error": "Failed to create generator"})
+                    }
                 } else {
-                    json!({"error": "Failed to create generator"})
+                    json!({"error": "Invalid token or account provided"})
                 }
             } else {
                 json!({"error": "Invalid token or account provided"})
