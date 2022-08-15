@@ -1,4 +1,5 @@
 use crate::ui::app::App;
+use crate::ui::state::InputMode;
 use tui::backend::Backend;
 use tui::layout::{Constraint, Rect};
 use tui::style::{Color, Modifier, Style};
@@ -6,7 +7,10 @@ use tui::widgets::{Block, Borders, Cell, Row, Table};
 use tui::Frame;
 
 pub fn render<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>, rect: Rect) {
-    let selected_style = Style::default().add_modifier(Modifier::REVERSED);
+    let mut selected_style = Style::default().add_modifier(Modifier::REVERSED);
+    if app.state.input_mode == InputMode::Details {
+        selected_style = selected_style.add_modifier(Modifier::DIM);
+    }
     let normal_style = Style::default().bg(Color::Gray);
     let header_cells = ["Account", "OTP", "Expires In"]
         .iter()
@@ -60,7 +64,7 @@ pub fn render<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>, rect: Rect) {
         .header(header)
         .block(Block::default().borders(Borders::ALL).title("TOTP"))
         .highlight_style(selected_style)
-        .highlight_symbol(">> ")
+        .highlight_symbol("> ")
         .widths(&[
             Constraint::Percentage(75),
             Constraint::Length(6),

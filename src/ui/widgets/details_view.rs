@@ -1,4 +1,6 @@
 use crate::ui::app::App;
+use crate::ui::state::InputMode;
+use crate::Record;
 use tui::backend::Backend;
 use tui::layout::Rect;
 use tui::style::{Color, Modifier, Style};
@@ -14,38 +16,21 @@ pub fn render<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>, rect: Rect) {
             if let Some(record) = app.state.records.iter().find(|r| &r.id == record_id) {
                 block = block.title(record.account.clone().unwrap_or_default());
 
-                let mut password =
-                    Text::styled("Password:\n", Style::default().add_modifier(Modifier::DIM));
-                password.extend(Text::styled(
-                    record.clone().password.unwrap_or_else(|| " ".to_string()),
-                    Style::default()
-                        .fg(Color::Yellow)
-                        .add_modifier(Modifier::BOLD),
+                let hidden = app.state.input_mode != InputMode::Details;
+                let frame_size = frame.size().width as usize;
+                list_items.push(list_item(
+                    "Password",
+                    record.password.clone(),
+                    frame_size,
+                    hidden,
                 ));
-                password.extend(Text::raw("_".repeat(frame.size().width as usize)));
-                list_items.push(ListItem::new(password));
-
-                let mut username =
-                    Text::styled("Username:\n", Style::default().add_modifier(Modifier::DIM));
-                username.extend(Text::styled(
-                    record.clone().user.unwrap_or_else(|| " ".to_string()),
-                    Style::default()
-                        .fg(Color::Yellow)
-                        .add_modifier(Modifier::BOLD),
+                list_items.push(list_item(
+                    "Username",
+                    record.user.clone(),
+                    frame_size,
+                    hidden,
                 ));
-                username.extend(Text::raw("_".repeat(frame.size().width as usize)));
-                list_items.push(ListItem::new(username));
-
-                let mut note =
-                    Text::styled("Note:\n", Style::default().add_modifier(Modifier::DIM));
-                note.extend(Text::styled(
-                    record.clone().note.unwrap_or_else(|| " ".to_string()),
-                    Style::default()
-                        .fg(Color::Yellow)
-                        .add_modifier(Modifier::BOLD),
-                ));
-                note.extend(Text::raw("_".repeat(frame.size().width as usize)));
-                list_items.push(ListItem::new(note));
+                list_items.push(list_item("Note", record.note.clone(), frame_size, hidden));
             }
         }
     }
@@ -58,4 +43,24 @@ pub fn render<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>, rect: Rect) {
         .highlight_symbol("> ");
 
     frame.render_stateful_widget(list.block(block), rect, &mut app.detail_state);
+}
+
+fn list_item(title: &str, value: Option<String>, frame_size: usize, hidden: bool) -> ListItem {
+    let mut title_text = Text::styled(
+        format!("{}:\n", title),
+        Style::default().add_modifier(Modifier::DIM),
+    );
+    let value_text = if hidden {
+        "*".repeat(frame_size)
+    } else {
+        value.unwrap_or_else(|| " ".to_string())
+    };
+    title_text.extend(Text::styled(
+        value_text,
+        Style::default()
+            .fg(Color::Yellow)
+            .add_modifier(Modifier::BOLD),
+    ));
+    title_text.extend(Text::raw("_".repeat(frame_size)));
+    ListItem::new(title_text)
 }
