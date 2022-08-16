@@ -49,7 +49,7 @@ pub fn handle_edit_details(key_event: KeyEvent, app: &mut App) {
     let modifiers = key_event.modifiers;
     match (code, modifiers) {
         (KeyCode::Esc, _) => app.state.input_mode = InputMode::Normal,
-        (KeyCode::Char('q'), _) => app.state.running = false,
+        (KeyCode::Char('e'), _) => app.state.running = false,
         _ => {}
     }
 }

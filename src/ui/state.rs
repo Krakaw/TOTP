@@ -26,6 +26,12 @@ pub enum ActivePane {
     OtpTable,
     DetailView,
 }
+#[derive(PartialEq)]
+pub enum DetailInputType {
+    Password,
+    Username,
+    Note,
+}
 
 impl Default for ActivePane {
     fn default() -> Self {
@@ -35,6 +41,7 @@ impl Default for ActivePane {
 pub struct State {
     pub input_mode: InputMode,
     pub active_pane: ActivePane,
+    pub detail_input_type: DetailInputType,
     pub detail_input: String,
     pub filter_input: String,
     pub items: Vec<(AccountName, Option<Generator>, RecordId)>,
@@ -49,6 +56,7 @@ impl Default for State {
         Self {
             input_mode: InputMode::default(),
             active_pane: ActivePane::default(),
+            detail_input_type: DetailInputType::Password,
             detail_input: String::new(),
             filter_input: String::new(),
             items: vec![],

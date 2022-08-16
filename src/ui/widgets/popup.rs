@@ -57,17 +57,29 @@ impl Popup {
                 .block(block)
                 .alignment(Alignment::Center)
                 .wrap(Wrap { trim: false })
-        }
-        // else if let Some(widget) = self.widget.as_ref() {
-        //     Paragraph::new(app.state.filter_input.as_ref())
-        //         .style(Style::default().fg(Color::Yellow))
-        //         .block(block)
-        // }
-        else {
+        } else {
             Paragraph::new("").block(block)
         };
 
         let area = self.centered_rect(60, 20, rect);
+        frame.render_widget(Clear, area); //this clears out the background
+        frame.render_widget(paragraph, area);
+    }
+
+    pub fn render_paragraph<B: Backend>(
+        &self,
+        frame: &mut Frame<'_, B>,
+        rect: Rect,
+        paragraph: Paragraph,
+        percent_x: u16,
+        percent_y: u16,
+    ) {
+        let block = Block::default()
+            .title(self.title.as_str())
+            .borders(Borders::ALL);
+        let paragraph = paragraph.block(block);
+
+        let area = self.centered_rect(percent_x, percent_y, rect);
         frame.render_widget(Clear, area); //this clears out the background
         frame.render_widget(paragraph, area);
     }
