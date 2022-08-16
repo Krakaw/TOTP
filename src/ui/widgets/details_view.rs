@@ -1,13 +1,13 @@
 use crate::ui::app::App;
-use crate::ui::state::ActivePane;
+use crate::ui::state::{ActivePane, InputMode};
 use tui::backend::Backend;
 use tui::layout::Rect;
 use tui::style::{Color, Modifier, Style};
 use tui::text::Text;
-use tui::widgets::{Block, BorderType, Borders, List, ListItem};
+use tui::widgets::{Block, BorderType, Borders, List, ListItem, Paragraph, Widget};
 use tui::Frame;
 
-pub fn render<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>, rect: Rect) {
+pub fn render<B: Backend, W: Widget>(app: &mut App<W>, frame: &mut Frame<'_, B>, rect: Rect) {
     let border_type = if app.state.active_pane == ActivePane::DetailView {
         BorderType::Thick
     } else {
@@ -68,5 +68,6 @@ fn list_item(title: &str, value: Option<String>, frame_size: usize, hidden: bool
             .add_modifier(Modifier::BOLD),
     ));
     title_text.extend(Text::raw("_".repeat(frame_size)));
+
     ListItem::new(title_text)
 }

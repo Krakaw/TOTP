@@ -1,6 +1,7 @@
 use crate::db::models::record::AccountName;
 use crate::ui::widgets::popup::Popup;
 use crate::{Generator, Record, StorageTrait, TotpError};
+use tui::widgets::Widget;
 
 pub type TotpAccountName = String;
 pub type TotpCode = String;
@@ -10,7 +11,8 @@ type RecordId = u32;
 #[derive(PartialEq)]
 pub enum InputMode {
     Normal,
-    Input,
+    FilterList,
+    EditDetail,
 }
 
 impl Default for InputMode {
@@ -30,23 +32,25 @@ impl Default for ActivePane {
         ActivePane::OtpTable
     }
 }
-pub struct State {
+pub struct State<W: Widget + ?Sized> {
     pub input_mode: InputMode,
     pub active_pane: ActivePane,
-    pub filter: String,
+    pub detail_input: String,
+    pub filter_input: String,
     pub items: Vec<(AccountName, Option<Generator>, RecordId)>,
     pub records: Vec<Record>,
     pub display_otps: Vec<(TotpAccountName, TotpCode, ExpirySeconds, RecordId)>,
     pub running: bool,
-    pub show_popup: Option<Popup>,
+    pub show_popup: Option<Popup<W>>,
 }
 
-impl Default for State {
+impl<W: Widget> Default for State<W> {
     fn default() -> Self {
         Self {
             input_mode: InputMode::default(),
             active_pane: ActivePane::default(),
-            filter: String::new(),
+            detail_input: String::new(),
+            filter_input: String::new(),
             items: vec![],
             records: vec![],
             display_otps: vec![],
@@ -56,7 +60,7 @@ impl Default for State {
     }
 }
 
-impl State {
+impl<W: Widget> State<W> {
     pub fn new<T: StorageTrait>(storage: T) -> Result<Self, TotpError> {
         let mut items = vec![];
         let mut records = vec![];

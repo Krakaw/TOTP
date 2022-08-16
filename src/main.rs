@@ -158,7 +158,6 @@ fn main() -> Result<(), TotpError> {
         Commands::Delete { account } => {
             storage.remove_account(account.to_owned())?;
         }
-
         Commands::Check {
             token,
             otp,
