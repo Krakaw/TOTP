@@ -4,10 +4,10 @@ use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use tui::backend::Backend;
 use tui::widgets::Widget;
 
-pub fn handle_key_events<B: Backend, W: Widget>(
+pub fn handle_key_events<B: Backend>(
     key_event: KeyEvent,
     _tui: &mut Tui<B>,
-    app: &mut App<W>,
+    app: &mut App,
 ) -> Result<(), TotpError> {
     let code = key_event.code;
     let modifiers = key_event.modifiers;
@@ -29,7 +29,7 @@ pub fn handle_key_events<B: Backend, W: Widget>(
     Ok(())
 }
 
-pub fn handle_normal_mode<W: Widget>(key_event: KeyEvent, app: &mut App<W>) {
+pub fn handle_normal_mode(key_event: KeyEvent, app: &mut App) {
     let code = key_event.code;
     let modifiers = key_event.modifiers;
     match (code, modifiers) {
@@ -44,7 +44,7 @@ pub fn handle_normal_mode<W: Widget>(key_event: KeyEvent, app: &mut App<W>) {
     }
 }
 
-pub fn handle_edit_details<W: Widget>(key_event: KeyEvent, app: &mut App<W>) {
+pub fn handle_edit_details(key_event: KeyEvent, app: &mut App) {
     let code = key_event.code;
     let modifiers = key_event.modifiers;
     match (code, modifiers) {
@@ -54,7 +54,7 @@ pub fn handle_edit_details<W: Widget>(key_event: KeyEvent, app: &mut App<W>) {
     }
 }
 
-pub fn handle_input_mode<W: Widget>(key_event: KeyEvent, app: &mut App<W>) {
+pub fn handle_input_mode(key_event: KeyEvent, app: &mut App) {
     let code = key_event.code;
     let modifiers = key_event.modifiers;
     match (code, modifiers) {

@@ -6,7 +6,7 @@ use tui::style::{Color, Style};
 use tui::widgets::{Block, BorderType, Borders, Paragraph, Widget};
 use tui::Frame;
 
-pub fn render<B: Backend, W: Widget>(app: &mut App<W>, frame: &mut Frame<'_, B>, rect: Rect) {
+pub fn render<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>, rect: Rect) {
     let border_type = if app.state.input_mode == InputMode::FilterList {
         BorderType::Thick
     } else {

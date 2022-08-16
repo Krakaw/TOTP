@@ -8,15 +8,15 @@ use std::ops::Add;
 use tui::widgets::{ListState, TableState, Widget};
 
 const POPUP_DELAY: i64 = 750;
-pub struct App<W: Widget + ?Sized> {
+pub struct App {
     /// Application State
-    pub state: State<W>,
+    pub state: State,
     /// Table State
     pub table_state: TableState,
     /// Detail View State
     pub detail_state: ListState,
 }
-impl<W: Widget> App<W> {
+impl App {
     pub fn new<T: StorageTrait>(storage: T) -> Result<Self, TotpError> {
         Ok(Self {
             state: State::new(storage)?,
@@ -111,7 +111,6 @@ impl<W: Widget> App<W> {
                     self.state.show_popup = Some(Popup::new(
                         "OTP Copied".to_string(),
                         Some("Successfully copied OTP".to_string()),
-                        None,
                         Some(
                             Utc::now()
                                 .add(chrono::Duration::milliseconds(POPUP_DELAY))
@@ -145,7 +144,6 @@ impl<W: Widget> App<W> {
                         self.state.show_popup = Some(Popup::new(
                             "Detail Copied".to_string(),
                             Some(content.to_string()),
-                            None,
                             Some(
                                 Utc::now()
                                     .add(chrono::Duration::milliseconds(POPUP_DELAY))

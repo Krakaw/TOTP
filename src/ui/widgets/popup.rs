@@ -7,25 +7,18 @@ use tui::style::{Color, Style};
 use tui::widgets::{Block, Borders, Paragraph, Widget, Wrap};
 use tui::Frame;
 
-pub struct Popup<W: Widget + ?Sized> {
+pub struct Popup {
     pub title: String,
     pub message: Option<String>,
-    pub widget: Box<W>,
     pub show_until: Option<NaiveDateTime>,
 }
 
-impl<W: Widget> Popup<W> {
-    pub fn new(
-        title: String,
-        message: Option<String>,
-        widget: Option<W>,
-        show_until: Option<NaiveDateTime>,
-    ) -> Popup<W> {
+impl Popup {
+    pub fn new(title: String, message: Option<String>, show_until: Option<NaiveDateTime>) -> Popup {
         Popup {
             title,
             show_until,
             message,
-            widget,
         }
     }
 
@@ -55,7 +48,7 @@ impl<W: Widget> Popup<W> {
             .split(popup_layout[1])[1]
     }
 
-    pub fn render<B: Backend>(&self, app: &mut App<W>, frame: &mut Frame<'_, B>, rect: Rect) {
+    pub fn render<B: Backend>(&self, app: &App, frame: &mut Frame<'_, B>, rect: Rect) {
         let block = Block::default()
             .title(self.title.as_str())
             .borders(Borders::ALL);
@@ -64,11 +57,13 @@ impl<W: Widget> Popup<W> {
                 .block(block)
                 .alignment(Alignment::Center)
                 .wrap(Wrap { trim: false })
-        } else if let Some(widget) = self.widget.as_ref() {
-            Paragraph::new(app.state.filter_input.as_ref())
-                .style(Style::default().fg(Color::Yellow))
-                .block(block)
-        } else {
+        }
+        // else if let Some(widget) = self.widget.as_ref() {
+        //     Paragraph::new(app.state.filter_input.as_ref())
+        //         .style(Style::default().fg(Color::Yellow))
+        //         .block(block)
+        // }
+        else {
             Paragraph::new("").block(block)
         };
 

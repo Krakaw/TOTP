@@ -32,7 +32,7 @@ impl Default for ActivePane {
         ActivePane::OtpTable
     }
 }
-pub struct State<W: Widget + ?Sized> {
+pub struct State {
     pub input_mode: InputMode,
     pub active_pane: ActivePane,
     pub detail_input: String,
@@ -41,10 +41,10 @@ pub struct State<W: Widget + ?Sized> {
     pub records: Vec<Record>,
     pub display_otps: Vec<(TotpAccountName, TotpCode, ExpirySeconds, RecordId)>,
     pub running: bool,
-    pub show_popup: Option<Popup<W>>,
+    pub show_popup: Option<Popup>,
 }
 
-impl<W: Widget> Default for State<W> {
+impl Default for State {
     fn default() -> Self {
         Self {
             input_mode: InputMode::default(),
@@ -60,7 +60,7 @@ impl<W: Widget> Default for State<W> {
     }
 }
 
-impl<W: Widget> State<W> {
+impl State {
     pub fn new<T: StorageTrait>(storage: T) -> Result<Self, TotpError> {
         let mut items = vec![];
         let mut records = vec![];

@@ -7,7 +7,7 @@ use tui::text::Text;
 use tui::widgets::{Block, BorderType, Borders, List, ListItem, Paragraph, Widget};
 use tui::Frame;
 
-pub fn render<B: Backend, W: Widget>(app: &mut App<W>, frame: &mut Frame<'_, B>, rect: Rect) {
+pub fn render<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>, rect: Rect) {
     let border_type = if app.state.active_pane == ActivePane::DetailView {
         BorderType::Thick
     } else {

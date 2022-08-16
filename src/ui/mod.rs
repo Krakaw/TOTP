@@ -12,7 +12,7 @@ pub mod tui;
 pub mod widgets;
 
 pub fn init<T: StorageTrait>(storage: T) -> Result<(), TotpError> {
-    let mut app: App<dyn Widget> = App::new(storage)?;
+    let mut app: App = App::new(storage)?;
     let backend = CrosstermBackend::new(io::stdout());
     let terminal = Terminal::new(backend)?;
     let events = EventHandler::new(250)?;

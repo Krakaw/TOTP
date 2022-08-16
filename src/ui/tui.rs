@@ -36,7 +36,7 @@ impl<B: Backend> Tui<B> {
         Ok(())
     }
 
-    pub fn draw<W: Widget>(&mut self, app: &mut App<W>) -> Result<(), TotpError> {
+    pub fn draw(&mut self, app: &mut App) -> Result<(), TotpError> {
         self.terminal
             .draw(|frame| render(app, frame))
             .map_err(|e| TotpError::Ui(e.to_string()))?;
@@ -51,7 +51,7 @@ impl<B: Backend> Tui<B> {
     }
 }
 
-fn render<B: Backend, W: Widget>(app: &mut App<W>, frame: &mut Frame<'_, B>) {
+fn render<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>) {
     if let Some(popup) = app.state.show_popup.as_ref() {
         let rect = frame.size();
         popup.render(app, frame, rect);
