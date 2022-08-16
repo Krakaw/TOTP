@@ -5,7 +5,7 @@ use chrono::Utc;
 #[cfg(feature = "cli-clipboard")]
 use cli_clipboard::set_contents;
 use std::ops::Add;
-use tui::widgets::{ListState, TableState, Widget};
+use tui::widgets::{ListState, TableState};
 
 const POPUP_DELAY: i64 = 750;
 pub struct App {

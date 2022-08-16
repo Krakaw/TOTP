@@ -2,7 +2,6 @@ use crate::ui::state::{ActivePane, InputMode};
 use crate::{App, TotpError, Tui};
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use tui::backend::Backend;
-use tui::widgets::Widget;
 
 pub fn handle_key_events<B: Backend>(
     key_event: KeyEvent,

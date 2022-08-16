@@ -3,7 +3,7 @@ use crate::ui::state::ActivePane;
 use tui::backend::Backend;
 use tui::layout::{Constraint, Rect};
 use tui::style::{Color, Modifier, Style};
-use tui::widgets::{Block, BorderType, Borders, Cell, Row, Table, Widget};
+use tui::widgets::{Block, BorderType, Borders, Cell, Row, Table};
 use tui::Frame;
 
 pub fn render<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>, rect: Rect) {

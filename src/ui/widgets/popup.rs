@@ -1,10 +1,8 @@
 use crate::ui::widgets::clear::Clear;
-use crate::App;
 use chrono::NaiveDateTime;
 use tui::backend::Backend;
 use tui::layout::{Alignment, Constraint, Direction, Layout, Rect};
-use tui::style::{Color, Style};
-use tui::widgets::{Block, Borders, Paragraph, Widget, Wrap};
+use tui::widgets::{Block, Borders, Paragraph, Wrap};
 use tui::Frame;
 
 pub struct Popup {
@@ -48,7 +46,7 @@ impl Popup {
             .split(popup_layout[1])[1]
     }
 
-    pub fn render<B: Backend>(&self, app: &App, frame: &mut Frame<'_, B>, rect: Rect) {
+    pub fn render<B: Backend>(&self, frame: &mut Frame<'_, B>, rect: Rect) {
         let block = Block::default()
             .title(self.title.as_str())
             .borders(Borders::ALL);

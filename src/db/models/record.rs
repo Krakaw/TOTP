@@ -56,13 +56,13 @@ impl Record {
     ) -> Result<Record, TotpError> {
         Ok(Record {
             id: secure_record.id,
-            account: decrypt_record_field(secure_record.account.as_ref(), password, encryption),
-            user: decrypt_record_field(secure_record.user.as_ref(), password, encryption),
-            token: decrypt_record_field(secure_record.token.as_ref(), password, encryption)
+            account: decrypt_record_field(secure_record.account.as_ref(), password, encryption)?,
+            user: decrypt_record_field(secure_record.user.as_ref(), password, encryption)?,
+            token: decrypt_record_field(secure_record.token.as_ref(), password, encryption)?
                 .map(|t| serde_json::from_str(&t))
                 .and_then(|t| t.ok()),
-            password: decrypt_record_field(secure_record.password.as_ref(), password, encryption),
-            note: decrypt_record_field(secure_record.note.as_ref(), password, encryption),
+            password: decrypt_record_field(secure_record.password.as_ref(), password, encryption)?,
+            note: decrypt_record_field(secure_record.note.as_ref(), password, encryption)?,
             created_at: secure_record.created_at,
             updated_at: secure_record.updated_at,
         })
@@ -97,8 +97,8 @@ fn decrypt_record_field<T: Display>(
     field: Option<&T>,
     password: &str,
     encryption: &Encryption,
-) -> Option<String> {
-    field
+) -> Result<Option<String>, TotpError> {
+    let res = field
         .map(|value| {
             let mut parts = value
                 .to_string()
@@ -110,8 +110,15 @@ fn decrypt_record_field<T: Display>(
             let iv = parts.next().unwrap_or_default();
             (content, iv)
         })
-        .map(|(content, iv)| encryption.decrypt(&content, password, &iv))
-        .and_then(|res| res.ok())
+        .map(|(content, iv)| {
+            if !content.is_empty() && !iv.is_empty() {
+                encryption.decrypt(&content, password, &iv)
+            } else {
+                Ok("".to_string())
+            }
+        })
+        .map_or(Ok(None), |v| v.map(Some));
+    Ok(res?)
 }
 
 fn encrypt_record_field<T: Display>(

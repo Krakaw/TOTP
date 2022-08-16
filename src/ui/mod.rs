@@ -1,6 +1,5 @@
 use crate::{App, Event, EventHandler, StorageTrait, TotpError, Tui};
 use ::tui::backend::CrosstermBackend;
-use ::tui::widgets::Widget;
 use ::tui::Terminal;
 use std::io;
 

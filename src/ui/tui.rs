@@ -8,7 +8,6 @@ use crossterm::terminal::{disable_raw_mode, EnterAlternateScreen, LeaveAlternate
 use std::io;
 use tui::backend::Backend;
 use tui::layout::{Constraint, Direction, Layout};
-use tui::widgets::Widget;
 use tui::{Frame, Terminal};
 
 pub struct Tui<B: Backend> {
@@ -54,7 +53,7 @@ impl<B: Backend> Tui<B> {
 fn render<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>) {
     if let Some(popup) = app.state.show_popup.as_ref() {
         let rect = frame.size();
-        popup.render(app, frame, rect);
+        popup.render(frame, rect);
     } else {
         let rects = Layout::default()
             .direction(Direction::Vertical)

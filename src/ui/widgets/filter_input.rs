@@ -3,7 +3,7 @@ use crate::ui::state::InputMode;
 use tui::backend::Backend;
 use tui::layout::Rect;
 use tui::style::{Color, Style};
-use tui::widgets::{Block, BorderType, Borders, Paragraph, Widget};
+use tui::widgets::{Block, BorderType, Borders, Paragraph};
 use tui::Frame;
 
 pub fn render<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>, rect: Rect) {

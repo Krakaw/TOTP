@@ -1,10 +1,10 @@
 use crate::ui::app::App;
-use crate::ui::state::{ActivePane, InputMode};
+use crate::ui::state::ActivePane;
 use tui::backend::Backend;
 use tui::layout::Rect;
 use tui::style::{Color, Modifier, Style};
 use tui::text::Text;
-use tui::widgets::{Block, BorderType, Borders, List, ListItem, Paragraph, Widget};
+use tui::widgets::{Block, BorderType, Borders, List, ListItem};
 use tui::Frame;
 
 pub fn render<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>, rect: Rect) {
