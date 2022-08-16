@@ -140,7 +140,6 @@ impl StorageTrait for SqliteStorage {
 mod tests {
     use super::*;
     use crate::Token;
-    use std::env::temp_dir;
     use std::str::FromStr;
     use std::time::{SystemTime, UNIX_EPOCH};
 
