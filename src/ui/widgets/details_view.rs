@@ -68,5 +68,6 @@ fn list_item(title: &str, value: Option<String>, frame_size: usize, hidden: bool
             .add_modifier(Modifier::BOLD),
     ));
     title_text.extend(Text::raw("_".repeat(frame_size)));
+
     ListItem::new(title_text)
 }

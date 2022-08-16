@@ -7,16 +7,16 @@ use tui::Frame;
 
 pub struct Popup {
     pub title: String,
-    pub content: String,
-    pub show_until: NaiveDateTime,
+    pub message: Option<String>,
+    pub show_until: Option<NaiveDateTime>,
 }
 
 impl Popup {
-    pub fn new(title: String, content: String, show_until: NaiveDateTime) -> Popup {
+    pub fn new(title: String, message: Option<String>, show_until: Option<NaiveDateTime>) -> Popup {
         Popup {
             title,
-            content,
             show_until,
+            message,
         }
     }
 
@@ -50,11 +50,34 @@ impl Popup {
         let block = Block::default()
             .title(self.title.as_str())
             .borders(Borders::ALL);
-        let paragraph = Paragraph::new(self.content.as_str())
-            .block(block)
-            .alignment(Alignment::Center)
-            .wrap(Wrap { trim: false });
+        let paragraph = if let Some(message) = self.message.as_ref() {
+            Paragraph::new(message.as_str())
+                .block(block)
+                .alignment(Alignment::Center)
+                .wrap(Wrap { trim: false })
+        } else {
+            Paragraph::new("").block(block)
+        };
+
         let area = self.centered_rect(60, 20, rect);
+        frame.render_widget(Clear, area); //this clears out the background
+        frame.render_widget(paragraph, area);
+    }
+
+    pub fn render_paragraph<B: Backend>(
+        &self,
+        frame: &mut Frame<'_, B>,
+        rect: Rect,
+        paragraph: Paragraph,
+        percent_x: u16,
+        percent_y: u16,
+    ) {
+        let block = Block::default()
+            .title(self.title.as_str())
+            .borders(Borders::ALL);
+        let paragraph = paragraph.block(block);
+
+        let area = self.centered_rect(percent_x, percent_y, rect);
         frame.render_widget(Clear, area); //this clears out the background
         frame.render_widget(paragraph, area);
     }

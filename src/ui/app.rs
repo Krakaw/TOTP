@@ -27,8 +27,10 @@ impl App {
 
     pub fn tick(&mut self) {
         if let Some(popup) = self.state.show_popup.as_ref() {
-            if popup.show_until < Utc::now().naive_utc() {
-                self.state.show_popup = None;
+            if let Some(show_until) = popup.show_until {
+                if show_until < Utc::now().naive_utc() {
+                    self.state.show_popup = None;
+                }
             }
         }
     }
@@ -108,10 +110,12 @@ impl App {
                 if let Some(i) = self.table_state.selected() {
                     self.state.show_popup = Some(Popup::new(
                         "OTP Copied".to_string(),
-                        "Successfully copied OTP".to_string(),
-                        Utc::now()
-                            .add(chrono::Duration::milliseconds(POPUP_DELAY))
-                            .naive_utc(),
+                        Some("Successfully copied OTP".to_string()),
+                        Some(
+                            Utc::now()
+                                .add(chrono::Duration::milliseconds(POPUP_DELAY))
+                                .naive_utc(),
+                        ),
                     ));
                     set_contents(self.state.display_otps[i].1.clone())
                         .expect("Failed to copy to clipboard");
@@ -139,10 +143,12 @@ impl App {
                         };
                         self.state.show_popup = Some(Popup::new(
                             "Detail Copied".to_string(),
-                            content.to_string(),
-                            Utc::now()
-                                .add(chrono::Duration::milliseconds(POPUP_DELAY))
-                                .naive_utc(),
+                            Some(content.to_string()),
+                            Some(
+                                Utc::now()
+                                    .add(chrono::Duration::milliseconds(POPUP_DELAY))
+                                    .naive_utc(),
+                            ),
                         ));
                         set_contents(value).expect("Failed to copy to clipboard");
                     }

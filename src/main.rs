@@ -73,6 +73,28 @@ enum Commands {
         #[clap(short = 't', long, default_value = "30")]
         step: u64,
     },
+    /// Add a new account
+    Edit {
+        /// Id
+        #[clap(short, long)]
+        id: u32,
+
+        /// Account name
+        #[clap(short, long)]
+        account: Option<String>,
+
+        /// User ID
+        #[clap(short, long)]
+        user: Option<String>,
+
+        /// Note
+        #[clap(short, long)]
+        note: Option<String>,
+
+        /// Password
+        #[clap(short, long)]
+        password: Option<String>,
+    },
     /// Delete an account
     Delete {
         /// Account name
@@ -155,10 +177,23 @@ fn main() -> Result<(), TotpError> {
             };
             storage.add_account(record)?;
         }
+        Commands::Edit {
+            id,
+            account,
+            user,
+            note,
+            password,
+        } => {
+            let mut record = storage.get_account(id.clone())?;
+            record.account = account.clone().or(record.account);
+            record.user = user.clone().or(record.user);
+            record.note = note.clone().or(record.note);
+            record.password = password.clone().or(record.password);
+            storage.edit_account(record)?;
+        }
         Commands::Delete { account } => {
             storage.remove_account(account.to_owned())?;
         }
-
         Commands::Check {
             token,
             otp,

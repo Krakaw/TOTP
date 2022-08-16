@@ -1,4 +1,4 @@
-use crate::ui::state::InputMode;
+use crate::ui::state::{ActivePane, InputMode};
 use crate::{App, TotpError, Tui};
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use tui::backend::Backend;
@@ -21,7 +21,8 @@ pub fn handle_key_events<B: Backend>(
     };
     match app.state.input_mode {
         InputMode::Normal => handle_normal_mode(key_event, app),
-        InputMode::Input => handle_input_mode(key_event, app),
+        InputMode::FilterList => handle_input_mode(key_event, app),
+        InputMode::EditDetail => handle_edit_details(key_event, app),
     }
 
     Ok(())
@@ -31,8 +32,23 @@ pub fn handle_normal_mode(key_event: KeyEvent, app: &mut App) {
     let code = key_event.code;
     let modifiers = key_event.modifiers;
     match (code, modifiers) {
-        (KeyCode::Char('/'), _) => app.state.input_mode = InputMode::Input,
+        (KeyCode::Char('/'), _) => app.state.input_mode = InputMode::FilterList,
+        (KeyCode::Char('e'), _) => {
+            if app.state.active_pane == ActivePane::DetailView {
+                app.state.input_mode = InputMode::EditDetail;
+            }
+        }
         (KeyCode::Char('q'), _) => app.state.running = false,
+        _ => {}
+    }
+}
+
+pub fn handle_edit_details(key_event: KeyEvent, app: &mut App) {
+    let code = key_event.code;
+    let modifiers = key_event.modifiers;
+    match (code, modifiers) {
+        (KeyCode::Esc, _) => app.state.input_mode = InputMode::Normal,
+        (KeyCode::Char('e'), _) => app.state.running = false,
         _ => {}
     }
 }
@@ -42,15 +58,15 @@ pub fn handle_input_mode(key_event: KeyEvent, app: &mut App) {
     let modifiers = key_event.modifiers;
     match (code, modifiers) {
         (KeyCode::Backspace, KeyModifiers::NONE) => {
-            app.state.filter.pop();
+            app.state.filter_input.pop();
             app.table_state.select(None);
         }
         (KeyCode::Char(c), KeyModifiers::NONE) => {
-            app.state.filter.push(c);
+            app.state.filter_input.push(c);
             app.table_state.select(None);
         }
         (KeyCode::Esc, _) => {
-            app.state.filter.clear();
+            app.state.filter_input.clear();
             app.state.input_mode = InputMode::Normal
         }
         _ => {}
