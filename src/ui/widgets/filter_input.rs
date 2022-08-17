@@ -20,16 +20,13 @@ pub fn render<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>, rect: Rect) {
                 .title("Filter")
                 .border_type(border_type),
         );
-    match app.state.input_mode {
-        InputMode::FilterList => {
-            frame.set_cursor(
-                // Put cursor past the end of the input text
-                rect.x + app.state.filter_input.len() as u16 + 1,
-                // Move one line down, from the border to the input line
-                rect.y + 1,
-            );
-        }
-        _ => {}
+    if app.state.input_mode == InputMode::FilterList {
+        frame.set_cursor(
+            // Put cursor past the end of the input text
+            rect.x + app.state.filter_input.len() as u16 + 1,
+            // Move one line down, from the border to the input line
+            rect.y + 1,
+        );
     }
     frame.render_widget(input, rect);
 }

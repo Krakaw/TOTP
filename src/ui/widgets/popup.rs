@@ -2,21 +2,29 @@ use crate::ui::widgets::clear::Clear;
 use chrono::NaiveDateTime;
 use tui::backend::Backend;
 use tui::layout::{Alignment, Constraint, Direction, Layout, Rect};
+use tui::style::Style;
 use tui::widgets::{Block, Borders, Paragraph, Wrap};
 use tui::Frame;
 
 pub struct Popup {
     pub title: String,
     pub message: Option<String>,
+    pub style: Option<Style>,
     pub show_until: Option<NaiveDateTime>,
 }
 
 impl Popup {
-    pub fn new(title: String, message: Option<String>, show_until: Option<NaiveDateTime>) -> Popup {
+    pub fn new(
+        title: String,
+        message: Option<String>,
+        show_until: Option<NaiveDateTime>,
+        style: Option<Style>,
+    ) -> Popup {
         Popup {
             title,
             show_until,
             message,
+            style,
         }
     }
 
@@ -55,6 +63,7 @@ impl Popup {
                 .block(block)
                 .alignment(Alignment::Center)
                 .wrap(Wrap { trim: false })
+                .style(self.style.unwrap_or_default())
         } else {
             Paragraph::new("").block(block)
         };

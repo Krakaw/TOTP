@@ -44,7 +44,7 @@ impl StorageTrait for SqliteStorage {
             .collect::<Vec<&Record>>();
         accounts.sort_by(|a, b| a.account.cmp(&b.account));
 
-        Ok(accounts.into_iter().map(|t| t.clone()).collect::<Vec<_>>())
+        Ok(accounts.into_iter().cloned().collect::<Vec<_>>())
     }
 
     fn add_account(&mut self, record: Record) -> Result<(), TotpError> {

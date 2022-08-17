@@ -98,7 +98,7 @@ fn decrypt_record_field<T: Display>(
     password: &str,
     encryption: &Encryption,
 ) -> Result<Option<String>, TotpError> {
-    let res = field
+    field
         .map(|value| {
             let mut parts = value
                 .to_string()
@@ -117,8 +117,7 @@ fn decrypt_record_field<T: Display>(
                 Ok("".to_string())
             }
         })
-        .map_or(Ok(None), |v| v.map(Some));
-    Ok(res?)
+        .map_or(Ok(None), |v| v.map(Some))
 }
 
 fn encrypt_record_field<T: Display>(

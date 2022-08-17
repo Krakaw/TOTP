@@ -184,7 +184,7 @@ fn main() -> Result<(), TotpError> {
             note,
             password,
         } => {
-            let mut record = storage.get_account(id.clone())?;
+            let mut record = storage.get_account(*id)?;
             record.account = account.clone().or(record.account);
             record.user = user.clone().or(record.user);
             record.note = note.clone().or(record.note);

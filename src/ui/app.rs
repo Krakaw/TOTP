@@ -5,9 +5,10 @@ use chrono::Utc;
 #[cfg(feature = "cli-clipboard")]
 use cli_clipboard::set_contents;
 use std::ops::Add;
+use tui::style::{Color, Style};
 use tui::widgets::{ListState, TableState};
 
-const POPUP_DELAY: i64 = 750;
+const POPUP_DELAY: i64 = 500;
 pub struct App {
     /// Application State
     pub state: State,
@@ -108,17 +109,32 @@ impl App {
         match self.state.active_pane {
             ActivePane::OtpTable => {
                 if let Some(i) = self.table_state.selected() {
-                    self.state.show_popup = Some(Popup::new(
-                        "OTP Copied".to_string(),
-                        Some("Successfully copied OTP".to_string()),
-                        Some(
-                            Utc::now()
-                                .add(chrono::Duration::milliseconds(POPUP_DELAY))
-                                .naive_utc(),
-                        ),
-                    ));
-                    set_contents(self.state.display_otps[i].1.clone())
-                        .expect("Failed to copy to clipboard");
+                    match set_contents(self.state.display_otps[i].1.clone()) {
+                        Ok(_) => {
+                            self.state.show_popup = Some(Popup::new(
+                                "OTP Copied".to_string(),
+                                Some("Successfully copied OTP".to_string()),
+                                Some(
+                                    Utc::now()
+                                        .add(chrono::Duration::milliseconds(POPUP_DELAY))
+                                        .naive_utc(),
+                                ),
+                                Some(Style::default().fg(Color::Green)),
+                            ));
+                        }
+                        Err(e) => {
+                            self.state.show_popup = Some(Popup::new(
+                                "Error Copying OTP".to_string(),
+                                Some(e.to_string()),
+                                Some(
+                                    Utc::now()
+                                        .add(chrono::Duration::milliseconds(POPUP_DELAY))
+                                        .naive_utc(),
+                                ),
+                                Some(Style::default().fg(Color::Red)),
+                            ));
+                        }
+                    };
                 }
             }
             ActivePane::DetailView => {
@@ -141,16 +157,32 @@ impl App {
                                 "Successfully copied password",
                             ),
                         };
-                        self.state.show_popup = Some(Popup::new(
-                            "Detail Copied".to_string(),
-                            Some(content.to_string()),
-                            Some(
-                                Utc::now()
-                                    .add(chrono::Duration::milliseconds(POPUP_DELAY))
-                                    .naive_utc(),
-                            ),
-                        ));
-                        set_contents(value).expect("Failed to copy to clipboard");
+                        match set_contents(value) {
+                            Ok(_) => {
+                                self.state.show_popup = Some(Popup::new(
+                                    "Detail Copied".to_string(),
+                                    Some(content.to_string()),
+                                    Some(
+                                        Utc::now()
+                                            .add(chrono::Duration::milliseconds(POPUP_DELAY))
+                                            .naive_utc(),
+                                    ),
+                                    Some(Style::default().fg(Color::Green)),
+                                ));
+                            }
+                            Err(e) => {
+                                self.state.show_popup = Some(Popup::new(
+                                    "Error Copying Details".to_string(),
+                                    Some(e.to_string()),
+                                    Some(
+                                        Utc::now()
+                                            .add(chrono::Duration::milliseconds(POPUP_DELAY))
+                                            .naive_utc(),
+                                    ),
+                                    Some(Style::default().fg(Color::Red)),
+                                ));
+                            }
+                        };
                     }
                 }
             }
