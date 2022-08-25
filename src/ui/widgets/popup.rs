@@ -10,7 +10,10 @@ pub struct Popup {
     pub title: String,
     pub message: Option<String>,
     pub style: Option<Style>,
+    pub show_background: Option<bool>,
     pub show_until: Option<NaiveDateTime>,
+    pub percent_x: Option<u16>,
+    pub percent_y: Option<u16>,
 }
 
 impl Popup {
@@ -18,13 +21,19 @@ impl Popup {
         title: String,
         message: Option<String>,
         show_until: Option<NaiveDateTime>,
+        show_background: Option<bool>,
         style: Option<Style>,
+        percent_x: Option<u16>,
+        percent_y: Option<u16>,
     ) -> Popup {
         Popup {
             title,
             show_until,
             message,
+            show_background,
             style,
+            percent_x,
+            percent_y,
         }
     }
 
@@ -68,7 +77,14 @@ impl Popup {
             Paragraph::new("").block(block)
         };
 
-        let area = self.centered_rect(60, 20, rect);
+        let area = self.centered_rect(
+            self.percent_x.unwrap_or(60),
+            self.percent_y.unwrap_or(20),
+            rect,
+        );
+        if self.show_background.is_none() || self.show_background == Some(false) {
+            frame.render_widget(Clear, rect);
+        }
         frame.render_widget(Clear, area); //this clears out the background
         frame.render_widget(paragraph, area);
     }
@@ -78,15 +94,20 @@ impl Popup {
         frame: &mut Frame<'_, B>,
         rect: Rect,
         paragraph: Paragraph,
-        percent_x: u16,
-        percent_y: u16,
     ) {
         let block = Block::default()
             .title(self.title.as_str())
             .borders(Borders::ALL);
         let paragraph = paragraph.block(block);
 
-        let area = self.centered_rect(percent_x, percent_y, rect);
+        let area = self.centered_rect(
+            self.percent_x.unwrap_or(60),
+            self.percent_y.unwrap_or(20),
+            rect,
+        );
+        if self.show_background.is_none() || self.show_background == Some(false) {
+            frame.render_widget(Clear, rect);
+        }
         frame.render_widget(Clear, area); //this clears out the background
         frame.render_widget(paragraph, area);
     }

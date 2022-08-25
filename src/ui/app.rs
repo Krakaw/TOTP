@@ -106,35 +106,26 @@ impl App {
 
     pub fn set_clipboard(&mut self) {
         #[cfg(feature = "cli-clipboard")]
-        match self.state.active_pane {
+        if let Some(_) = &self.state.show_popup {
+            self.state.show_popup = None;
+            return;
+        }
+
+        if let Some((title, message, colour)) = match self.state.active_pane {
             ActivePane::OtpTable => {
                 if let Some(i) = self.table_state.selected() {
                     match set_contents(self.state.display_otps[i].1.clone()) {
-                        Ok(_) => {
-                            self.state.show_popup = Some(Popup::new(
-                                "OTP Copied".to_string(),
-                                Some("Successfully copied OTP".to_string()),
-                                Some(
-                                    Utc::now()
-                                        .add(chrono::Duration::milliseconds(POPUP_DELAY))
-                                        .naive_utc(),
-                                ),
-                                Some(Style::default().fg(Color::Green)),
-                            ));
-                        }
+                        Ok(_) => Some((
+                            "OTP Copied".to_string(),
+                            "Successfully copied OTP".to_string(),
+                            Color::Green,
+                        )),
                         Err(e) => {
-                            self.state.show_popup = Some(Popup::new(
-                                "Error Copying OTP".to_string(),
-                                Some(e.to_string()),
-                                Some(
-                                    Utc::now()
-                                        .add(chrono::Duration::milliseconds(POPUP_DELAY))
-                                        .naive_utc(),
-                                ),
-                                Some(Style::default().fg(Color::Red)),
-                            ));
+                            Some(("Error Copying OTP".to_string(), e.to_string(), Color::Red))
                         }
-                    };
+                    }
+                } else {
+                    None
                 }
             }
             ActivePane::DetailView => {
@@ -158,34 +149,38 @@ impl App {
                             ),
                         };
                         match set_contents(value) {
-                            Ok(_) => {
-                                self.state.show_popup = Some(Popup::new(
-                                    "Detail Copied".to_string(),
-                                    Some(content.to_string()),
-                                    Some(
-                                        Utc::now()
-                                            .add(chrono::Duration::milliseconds(POPUP_DELAY))
-                                            .naive_utc(),
-                                    ),
-                                    Some(Style::default().fg(Color::Green)),
-                                ));
-                            }
-                            Err(e) => {
-                                self.state.show_popup = Some(Popup::new(
-                                    "Error Copying Details".to_string(),
-                                    Some(e.to_string()),
-                                    Some(
-                                        Utc::now()
-                                            .add(chrono::Duration::milliseconds(POPUP_DELAY))
-                                            .naive_utc(),
-                                    ),
-                                    Some(Style::default().fg(Color::Red)),
-                                ));
-                            }
-                        };
+                            Ok(_) => Some((
+                                "Detail Copied".to_string(),
+                                content.to_string(),
+                                Color::Green,
+                            )),
+                            Err(e) => Some((
+                                "Error Copying Details".to_string(),
+                                e.to_string(),
+                                Color::Red,
+                            )),
+                        }
+                    } else {
+                        None
                     }
+                } else {
+                    None
                 }
             }
+        } {
+            self.state.show_popup = Some(Popup::new(
+                title,
+                Some(message),
+                Some(
+                    Utc::now()
+                        .add(chrono::Duration::milliseconds(POPUP_DELAY))
+                        .naive_utc(),
+                ),
+                Some(true),
+                Some(Style::default().fg(colour)),
+                Some(30),
+                Some(10),
+            ));
         }
     }
 }

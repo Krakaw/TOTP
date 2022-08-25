@@ -51,22 +51,21 @@ impl<B: Backend> Tui<B> {
 }
 
 fn render<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>) {
+    let rects = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([Constraint::Length(3), Constraint::Min(1)].as_ref())
+        .margin(1)
+        .split(frame.size());
+    filter_input::render(app, frame, rects[0]);
+    let body_rects = Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints([Constraint::Percentage(70), Constraint::Percentage(30)].as_ref())
+        .margin(0)
+        .split(rects[1]);
+    otp_table::render(app, frame, body_rects[0]);
+    details_view::render(app, frame, body_rects[1]);
     if let Some(popup) = app.state.show_popup.as_ref() {
         let rect = frame.size();
         popup.render(frame, rect);
-    } else {
-        let rects = Layout::default()
-            .direction(Direction::Vertical)
-            .constraints([Constraint::Length(3), Constraint::Min(1)].as_ref())
-            .margin(1)
-            .split(frame.size());
-        filter_input::render(app, frame, rects[0]);
-        let body_rects = Layout::default()
-            .direction(Direction::Horizontal)
-            .constraints([Constraint::Percentage(70), Constraint::Percentage(30)].as_ref())
-            .margin(0)
-            .split(rects[1]);
-        otp_table::render(app, frame, body_rects[0]);
-        details_view::render(app, frame, body_rects[1]);
     }
 }
