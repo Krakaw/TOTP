@@ -18,14 +18,25 @@ impl Default for Position {
         Self::Center
     }
 }
+
+#[derive(Clone)]
+pub struct Size {
+    pub x: u16,
+    pub y: u16,
+}
+
+impl Default for Size {
+    fn default() -> Self {
+        Self { x: 60, y: 20 }
+    }
+}
 pub struct Popup {
     pub title: String,
     pub message: Option<String>,
     pub style: Option<Style>,
     pub show_background: Option<bool>,
     pub show_until: Option<NaiveDateTime>,
-    pub percent_x: Option<u16>,
-    pub percent_y: Option<u16>,
+    pub size: Option<Size>,
     pub position: Option<Position>,
 }
 
@@ -36,8 +47,7 @@ impl Popup {
         show_until: Option<NaiveDateTime>,
         show_background: Option<bool>,
         style: Option<Style>,
-        percent_x: Option<u16>,
-        percent_y: Option<u16>,
+        size: Option<Size>,
         position: Option<Position>,
     ) -> Popup {
         Popup {
@@ -46,8 +56,7 @@ impl Popup {
             message,
             show_background,
             style,
-            percent_x,
-            percent_y,
+            size,
             position,
         }
     }
@@ -77,19 +86,20 @@ impl Popup {
             }
         }
     }
-    pub fn centered_rect(&self, percent_x: u16, percent_y: u16, r: Rect) -> Rect {
+    pub fn centered_rect(&self, size: Size, r: Rect) -> Rect {
+        let Size { x, y } = size;
         let popup_layout = Layout::default()
             .direction(Direction::Vertical)
-            .constraints(self.vertical_constraints(percent_y).as_ref())
+            .constraints(self.vertical_constraints(y).as_ref())
             .split(r);
 
         Layout::default()
             .direction(Direction::Horizontal)
             .constraints(
                 [
-                    Constraint::Percentage((100 - percent_x) / 2),
-                    Constraint::Percentage(percent_x),
-                    Constraint::Percentage((100 - percent_x) / 2),
+                    Constraint::Percentage((100 - x) / 2),
+                    Constraint::Percentage(x),
+                    Constraint::Percentage((100 - x) / 2),
                 ]
                 .as_ref(),
             )
@@ -110,11 +120,7 @@ impl Popup {
             Paragraph::new("").block(block)
         };
 
-        let area = self.centered_rect(
-            self.percent_x.unwrap_or(60),
-            self.percent_y.unwrap_or(20),
-            rect,
-        );
+        let area = self.centered_rect(self.size.clone().unwrap_or_default(), rect);
         if self.show_background.is_none() || self.show_background == Some(false) {
             frame.render_widget(Clear, rect);
         }
@@ -133,11 +139,7 @@ impl Popup {
             .borders(Borders::ALL);
         let paragraph = paragraph.block(block);
 
-        let area = self.centered_rect(
-            self.percent_x.unwrap_or(60),
-            self.percent_y.unwrap_or(20),
-            rect,
-        );
+        let area = self.centered_rect(self.size.clone().unwrap_or_default(), rect);
         if self.show_background.is_none() || self.show_background == Some(false) {
             frame.render_widget(Clear, rect);
         }
