@@ -56,6 +56,7 @@ impl Popup {
         match self.position.clone().unwrap_or_default() {
             Position::Top => {
                 vec![
+                    Constraint::Percentage(0),
                     Constraint::Percentage(percent_y),
                     Constraint::Percentage(100 - percent_y),
                 ]
@@ -71,6 +72,7 @@ impl Popup {
                 vec![
                     Constraint::Percentage(100 - percent_y),
                     Constraint::Percentage(percent_y),
+                    Constraint::Percentage(0),
                 ]
             }
         }

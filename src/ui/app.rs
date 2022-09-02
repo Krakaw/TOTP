@@ -117,7 +117,6 @@ impl App {
         if let Some((title, message, colour)) = match self.state.active_pane {
             ActivePane::OtpTable => {
                 if let Some(i) = self.table_state.selected() {
-                    eprintln!("i = {:?}", i);
                     match set_contents(self.state.display_otps[i].1.clone()) {
                         Ok(_) => Some((
                             "OTP Copied".to_string(),
