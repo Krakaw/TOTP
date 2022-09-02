@@ -20,6 +20,7 @@ name = "trotp"
 path = "src/main.rs"
 
 [dependencies]
+# Going to version 3 broke certain OTPs it needs investigation before upgrading
 totp-rs = "2"
 chrono = "0.4"
 data-encoding = "2.1.1"
