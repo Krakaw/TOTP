@@ -6,6 +6,18 @@ use tui::style::Style;
 use tui::widgets::{Block, Borders, Paragraph, Wrap};
 use tui::Frame;
 
+#[derive(Clone)]
+pub enum Position {
+    Top,
+    Center,
+    Bottom,
+}
+
+impl Default for Position {
+    fn default() -> Self {
+        Self::Center
+    }
+}
 pub struct Popup {
     pub title: String,
     pub message: Option<String>,
@@ -14,6 +26,7 @@ pub struct Popup {
     pub show_until: Option<NaiveDateTime>,
     pub percent_x: Option<u16>,
     pub percent_y: Option<u16>,
+    pub position: Option<Position>,
 }
 
 impl Popup {
@@ -25,6 +38,7 @@ impl Popup {
         style: Option<Style>,
         percent_x: Option<u16>,
         percent_y: Option<u16>,
+        position: Option<Position>,
     ) -> Popup {
         Popup {
             title,
@@ -34,20 +48,37 @@ impl Popup {
             style,
             percent_x,
             percent_y,
+            position,
         }
     }
 
-    pub fn centered_rect(&self, percent_x: u16, percent_y: u16, r: Rect) -> Rect {
-        let popup_layout = Layout::default()
-            .direction(Direction::Vertical)
-            .constraints(
-                [
+    fn vertical_constraints(&self, percent_y: u16) -> Vec<Constraint> {
+        match self.position.clone().unwrap_or_default() {
+            Position::Top => {
+                vec![
+                    Constraint::Percentage(percent_y),
+                    Constraint::Percentage(100 - percent_y),
+                ]
+            }
+            Position::Center => {
+                vec![
                     Constraint::Percentage((100 - percent_y) / 2),
                     Constraint::Percentage(percent_y),
                     Constraint::Percentage((100 - percent_y) / 2),
                 ]
-                .as_ref(),
-            )
+            }
+            Position::Bottom => {
+                vec![
+                    Constraint::Percentage(100 - percent_y),
+                    Constraint::Percentage(percent_y),
+                ]
+            }
+        }
+    }
+    pub fn centered_rect(&self, percent_x: u16, percent_y: u16, r: Rect) -> Rect {
+        let popup_layout = Layout::default()
+            .direction(Direction::Vertical)
+            .constraints(self.vertical_constraints(percent_y).as_ref())
             .split(r);
 
         Layout::default()

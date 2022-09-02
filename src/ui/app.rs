@@ -1,5 +1,5 @@
 use crate::ui::state::{ActivePane, State};
-use crate::ui::widgets::popup::Popup;
+use crate::ui::widgets::popup::{Popup, Position};
 use crate::{StorageTrait, TotpError};
 use chrono::Utc;
 #[cfg(feature = "cli-clipboard")]
@@ -184,6 +184,7 @@ impl App {
                 Some(Style::default().fg(colour)),
                 Some(30),
                 Some(10),
+                Some(Position::Top),
             ));
         }
     }
