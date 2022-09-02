@@ -47,3 +47,9 @@ urlencoding = "2.1.0"
 
 [features]
 default = ["cli-clipboard"]
+
+[profile.release]
+strip = true
+opt-level = "z"
+lto = true
+codegen-units = 1
