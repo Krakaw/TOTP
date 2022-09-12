@@ -73,7 +73,7 @@ enum Commands {
         #[clap(short = 't', long, default_value = "30")]
         step: u64,
     },
-    /// Add a new account
+    /// Edit an existing account
     Edit {
         /// Id
         #[clap(short, long)]

@@ -20,7 +20,11 @@ pub fn render<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>, rect: Rect) {
     if let Some(selected) = app.table_state.selected() {
         if let Some((_, _, _, record_id)) = app.state.display_otps.get(selected) {
             if let Some(record) = app.state.records.iter().find(|r| &r.id == record_id) {
-                block = block.title(record.account.clone().unwrap_or_default());
+                block = block.title(format!(
+                    "({}) {}",
+                    record_id,
+                    record.account.clone().unwrap_or_default()
+                ));
 
                 let hidden = app.state.active_pane != ActivePane::DetailView;
                 let frame_size = frame.size().width as usize;
