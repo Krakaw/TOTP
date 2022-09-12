@@ -14,6 +14,7 @@ pub enum TotpError {
     Format(String),
     Encryption(String),
     Decryption(String),
+    MissingLockKey,
     Utf8(String),
     InvalidOtpForRange,
     Ui(String),

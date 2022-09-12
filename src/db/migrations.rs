@@ -1,8 +1,9 @@
 use rusqlite_migration::{Migrations, M};
 
 pub fn migrations() -> Migrations<'static> {
-    Migrations::new(vec![M::up(
-        r#"
+    Migrations::new(vec![
+        M::up(
+            r#"
             CREATE TABLE IF NOT EXISTS secure_records
             (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -13,9 +14,17 @@ pub fn migrations() -> Migrations<'static> {
                 note TEXT NULL,
                 created_at INTEGER NOT NULL,
                 updated_at INTEGER NOT NULL
-            )
+            );
             "#,
-    )])
+        ),
+        M::up(
+            r#"
+            CREATE TABLE IF NOT EXISTS table_lock (
+                key TEXT NULL
+            );
+            "#,
+        ),
+    ])
 }
 
 #[cfg(test)]

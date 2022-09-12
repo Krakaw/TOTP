@@ -5,7 +5,7 @@ use chrono::NaiveDateTime;
 use r2d2_sqlite::rusqlite::{params, Row};
 use serde::{Deserialize, Serialize};
 
-type EncryptedString = String;
+pub type EncryptedString = String;
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SecureRecord {
     pub id: u32,

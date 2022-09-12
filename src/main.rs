@@ -3,6 +3,7 @@ extern crate core;
 use std::io::Write;
 use std::net::SocketAddr;
 
+use crate::db::encryption::Encryption;
 use crate::db::models::record::Record;
 use crate::db::Db;
 use crate::errors::TotpError;
@@ -33,6 +34,10 @@ struct Cli {
     /// The sqlite filename
     #[clap(short, long, default_value = ".totp.sqlite3")]
     sqlite_path: String,
+    /// Automatically set the table lock key
+    #[clap(short, long)]
+    auto_lock_key: bool,
+    /// Commands
     #[clap(subcommand)]
     command: Option<Commands>,
 }
@@ -143,8 +148,22 @@ fn main() -> Result<(), TotpError> {
 
     let db = Db::new(password, Some(cli.sqlite_path))?;
     db.init()?;
-    let mut storage = db::storage::sqlite::SqliteStorage::new(db);
+    let mut storage = db::storage::sqlite::SqliteStorage::new(db, Encryption::default());
     storage.load()?;
+    match storage.verify_lock_encryption() {
+        Ok(_) => {}
+        Err(TotpError::MissingLockKey) => {
+            if cli.auto_lock_key {
+                storage.set_lock_encryption()?;
+            } else {
+                println!("You have not set the table lock key, pass -a to automatically set it");
+                return Err(TotpError::MissingLockKey);
+            }
+        }
+        Err(e) => {
+            return Err(e);
+        }
+    }
     let command = match &cli.command {
         Some(command) => command,
         None => &Commands::Interactive {},

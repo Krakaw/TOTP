@@ -1,5 +1,5 @@
 use crate::db::encryption::Encryption;
-use crate::db::models::record::AccountName;
+use crate::db::models::record::{decrypt_record_field, encrypt_record_field, AccountName};
 use crate::db::models::secure_record::SecureRecord;
 use crate::db::storage::StorageTrait;
 use crate::db::Connection;
@@ -9,13 +9,15 @@ use r2d2_sqlite::rusqlite::params;
 pub struct SqliteStorage {
     pub db: Db,
     secure_records: Vec<SecureRecord>,
+    encryption: Encryption,
 }
 
 impl SqliteStorage {
-    pub fn new(db: Db) -> Self {
+    pub fn new(db: Db, encryption: Encryption) -> Self {
         Self {
             db,
             secure_records: vec![],
+            encryption,
         }
     }
 }
@@ -134,6 +136,49 @@ impl StorageTrait for SqliteStorage {
     fn password(&self) -> &str {
         self.db.password()
     }
+
+    fn get_encryption(&self) -> &Encryption {
+        &self.encryption
+    }
+
+    fn set_lock_encryption(&self) -> Result<(), TotpError> {
+        const DELETE_SQL: &str = "DELETE FROM table_lock WHERE 1=1;";
+        let conn = Connection::try_from(&self.db)?;
+        let mut stmt = conn.prepare(DELETE_SQL)?;
+        stmt.execute(params![])?;
+        const INSERT_SQL: &str = "INSERT INTO table_lock (key) VALUES (?1);";
+        let mut stmt = conn.prepare(INSERT_SQL)?;
+        let encryption = self.get_encryption();
+        stmt.execute(params![encrypt_record_field(
+            Some(&encryption.key),
+            self.password(),
+            encryption
+        )])?;
+        Ok(())
+    }
+
+    fn verify_lock_encryption(&self) -> Result<(), TotpError> {
+        const SQL: &str = "SELECT key FROM table_lock";
+        let conn = Connection::try_from(&self.db)?;
+        let mut stmt = conn.prepare(SQL)?;
+        let mut rows = stmt.query_map([], |row| row.get::<_, String>(0))?;
+        if let Some(result) = rows.next() {
+            let encryption = self.get_encryption();
+            let value = result
+                .map_err(|_e| TotpError::Decryption("Missing lock key, aborting.".to_string()))?;
+            let key = decrypt_record_field(Some(&value), self.password(), encryption)?;
+            if key == Some(encryption.key.clone()) {
+                return Ok(());
+            }
+        } else {
+            // Key is missing
+            return Err(TotpError::MissingLockKey);
+        }
+
+        Err(TotpError::Decryption(
+            "Lock key is invalid, aborting.".to_string(),
+        ))
+    }
 }
 
 #[cfg(test)]
@@ -150,19 +195,19 @@ mod tests {
             .subsec_nanos()
     }
 
-    fn get_storage() -> SqliteStorage {
+    fn get_storage(encryption: Option<Encryption>) -> SqliteStorage {
         let db = Db::new(
             "password".to_string(),
             Some(format!("file:memdb{}?mode=memory&cache=shared", rand())),
         )
         .unwrap();
         db.init().unwrap();
-        SqliteStorage::new(db)
+        SqliteStorage::new(db, encryption.unwrap_or_default())
     }
 
     #[test]
     fn add_account() {
-        let mut storage = get_storage();
+        let mut storage = get_storage(None);
         assert_eq!(storage.accounts().unwrap().iter().len(), 0);
         storage
             .add_account(Record {
@@ -176,7 +221,7 @@ mod tests {
 
     #[test]
     fn delete_account() {
-        let mut storage = get_storage();
+        let mut storage = get_storage(None);
         assert_eq!(storage.accounts().unwrap().iter().len(), 0);
         storage
             .add_account(Record {
@@ -202,7 +247,7 @@ mod tests {
 
     #[test]
     fn get_account_token() {
-        let mut storage = get_storage();
+        let mut storage = get_storage(None);
         storage
             .add_account(Record {
                 account: Some("Account1".to_string()),
@@ -222,6 +267,66 @@ mod tests {
         assert_eq!(record.token.unwrap().to_string(), "KRSXG5A=".to_string());
         let token = storage.search_account("Account3");
         assert!(token.is_err());
+    }
+
+    #[test]
+    fn table_lock_keys() {
+        let db_path = format!("file:memdb{}?mode=memory&cache=shared", rand());
+        let db = Db::new("password".to_string(), Some(db_path.clone())).unwrap();
+        db.init().unwrap();
+        let storage = SqliteStorage::new(
+            db,
+            Encryption {
+                key: "SomeOtherKey".to_string(),
+                value: "SomeOtherValue".to_string(),
+            },
+        );
+
+        // Cannot verify lock encryption without first setting it.
+        let missing_error = storage.verify_lock_encryption();
+        assert!(matches!(missing_error, Err(TotpError::MissingLockKey)));
+
+        // Set lock encryption
+        assert!(storage.set_lock_encryption().is_ok());
+        // Now verify lock encryption is value
+        assert!(storage.verify_lock_encryption().is_ok());
+
+        let db = Db::new("password".to_string(), Some(db_path.clone())).unwrap();
+        let mut storage = SqliteStorage::new(
+            db,
+            Encryption {
+                key: "SomeOtherKey".to_string(),
+                value: "SomeOtherValue".to_string(),
+            },
+        );
+        // Reconnecting will still verify correctly.
+        assert!(storage.verify_lock_encryption().is_ok());
+
+        // Now check the wrong password fails
+        let db = Db::new("wrong_password".to_string(), Some(db_path.clone())).unwrap();
+        let mut storage = SqliteStorage::new(
+            db,
+            Encryption {
+                key: "SomeOtherKey".to_string(),
+                value: "SomeOtherValue".to_string(),
+            },
+        );
+        // Using the wrong password will fail to validate
+        let error_result = storage.verify_lock_encryption();
+        assert!(error_result.is_err());
+
+        // Now check the wrong key fails
+        let db = Db::new("password".to_string(), Some(db_path)).unwrap();
+        let mut storage = SqliteStorage::new(
+            db,
+            Encryption {
+                key: "WrongKey".to_string(),
+                value: "SomeOtherValue".to_string(),
+            },
+        );
+        // Using the wrong password will fail to validate
+        let error_result = storage.verify_lock_encryption();
+        assert!(error_result.is_err());
     }
     // #[test]
     // fn get_account_token() {

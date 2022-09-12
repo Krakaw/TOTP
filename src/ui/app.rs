@@ -106,7 +106,7 @@ impl App {
 
     pub fn set_clipboard(&mut self) {
         #[cfg(feature = "cli-clipboard")]
-        if let Some(_) = &self.state.show_popup {
+        if self.state.show_popup.is_some() {
             self.state.show_popup = None;
             return;
         }

@@ -1,5 +1,5 @@
 use crate::db::models::record::AccountName;
-use crate::{Record, TotpError};
+use crate::{Encryption, Record, TotpError};
 
 pub mod sqlite;
 
@@ -20,4 +20,7 @@ pub trait StorageTrait {
     fn accounts(&self) -> Result<Vec<Record>, TotpError>;
     fn load(&mut self) -> Result<(), TotpError>;
     fn password(&self) -> &str;
+    fn get_encryption(&self) -> &Encryption;
+    fn set_lock_encryption(&self) -> Result<(), TotpError>;
+    fn verify_lock_encryption(&self) -> Result<(), TotpError>;
 }

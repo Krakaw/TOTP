@@ -93,12 +93,12 @@ impl Record {
         })
     }
 }
-fn decrypt_record_field<T: Display>(
-    field: Option<&T>,
+pub fn decrypt_record_field<T: Display>(
+    field_value: Option<&T>,
     password: &str,
     encryption: &Encryption,
 ) -> Result<Option<String>, TotpError> {
-    field
+    field_value
         .map(|value| {
             let mut parts = value
                 .to_string()
@@ -120,12 +120,12 @@ fn decrypt_record_field<T: Display>(
         .map_or(Ok(None), |v| v.map(Some))
 }
 
-fn encrypt_record_field<T: Display>(
-    field: Option<&T>,
+pub fn encrypt_record_field<T: Display>(
+    field_value: Option<&T>,
     password: &str,
     encryption: &Encryption,
 ) -> Option<String> {
-    field
+    field_value
         .map(|value| encryption.encrypt(&value.to_string(), password))
         .and_then(|res| res.ok())
         .map(|(encrypted_content, iv)| format!("{}:{}", encrypted_content, iv))
