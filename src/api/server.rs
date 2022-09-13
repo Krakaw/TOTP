@@ -35,18 +35,15 @@ where
             let account_or_secret = request.url().replace('/', "");
             let decoded = urlencoding::decode(&account_or_secret)
                 .map_err(|e| TotpError::Utf8(e.to_string()))?;
-            let account_token_result =
-                self.storage
-                    .search_account(&decoded.to_string())
-                    .or_else(|_e| {
-                        Token::from_str(&account_or_secret)
-                            .map(|token| ("Secret".to_string(), token))
-                            .map(|(account_name, token)| Record {
-                                account: Some(account_name),
-                                token: Some(token),
-                                ..Record::default()
-                            })
-                    });
+            let account_token_result = self.storage.search_account(&decoded).or_else(|_e| {
+                Token::from_str(&account_or_secret)
+                    .map(|token| ("Secret".to_string(), token))
+                    .map(|(account_name, token)| Record {
+                        account: Some(account_name),
+                        token: Some(token),
+                        ..Record::default()
+                    })
+            });
 
             let result = if let Ok(record) = account_token_result {
                 if let Some(token) = record.token {

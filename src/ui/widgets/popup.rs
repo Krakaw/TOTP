@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use crate::ui::widgets::clear::Clear;
 use chrono::NaiveDateTime;
 use tui::backend::Backend;

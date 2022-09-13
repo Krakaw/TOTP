@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use crate::db::models::record::AccountName;
 use crate::ui::widgets::popup::Popup;
 use crate::{Generator, Record, StorageTrait, TotpError};
@@ -7,7 +8,7 @@ pub type TotpCode = String;
 type ExpirySeconds = u64;
 type RecordId = u32;
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Eq)]
 pub enum InputMode {
     Normal,
     FilterList,
@@ -20,12 +21,12 @@ impl Default for InputMode {
     }
 }
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Eq)]
 pub enum ActivePane {
     OtpTable,
     DetailView,
 }
-#[derive(PartialEq)]
+#[derive(PartialEq, Eq)]
 pub enum DetailInputType {
     Password,
     Username,
