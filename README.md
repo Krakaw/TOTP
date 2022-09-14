@@ -22,7 +22,7 @@ trotp --help
 ```
 
 ```
-trotp 1.0.0
+trotp 1.0.4
 Krakaw <41575888+Krakaw@users.noreply.github.com>
 TUI TOTP generator
 
@@ -30,6 +30,7 @@ USAGE:
     trotp [OPTIONS] [SUBCOMMAND]
 
 OPTIONS:
+    -a, --auto-lock-key                Automatically set the table lock key
     -h, --help                         Print help information
     -p, --password <PASSWORD>          The encryption password
     -s, --sqlite-path <SQLITE_PATH>    The sqlite filename [default: .totp.sqlite3]
@@ -40,6 +41,7 @@ SUBCOMMANDS:
     check          Check an OTP
     delete         Delete an account
     dump           Dump the config file
+    edit           Edit an existing account
     help           Print this message or the help of the given subcommand(s)
     interactive    Run in interactive mode [default]
     serve          Start an HTTP Server
@@ -52,6 +54,10 @@ SUBCOMMANDS:
 ### Delete an account
 
     trotp -p password delete -a AccountName
+
+### Edit an account
+
+    trotp -p password edit -i 1 -a NewAccountName -s NewTOTPSecret -p NewPassword -n NewNote -u NewUserName
 
 ### Check an OTP against a secret for a specific time within a range
 
@@ -73,12 +79,12 @@ SUBCOMMANDS:
 ### User Interface
 
 #### Global Key Bindings
-| Key Binding | Action                  |
-|-------------|-------------------------|
-| `/`         | Switch to insert mode   |
-| `Esc`       | Switch to normal mode   |
-| `Tab`       | Toggle password mode    |
-| `Ctrl-c`    | Exit                    |
-| `Down`      | Select next account     |
-| `Up`        | Select previous account |
-| `Enter`     | Copy OTP to clipboard   |
+| Key Binding | Action                          |
+|-------------|---------------------------------|
+| `/`         | Switch to insert mode           |
+| `Esc`       | Switch to normal mode           |
+| `Tab`       | Toggle password mode            |
+| `Down`      | Select next account             |
+| `Up`        | Select previous account         |
+| `Enter`     | Copy OTP or Detail to clipboard |
+| `Ctrl-c`    | Exit                            |
