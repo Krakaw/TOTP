@@ -22,7 +22,7 @@ trotp --help
 ```
 
 ```
-trotp 1.0.4
+trotp 1.0.5
 Krakaw <41575888+Krakaw@users.noreply.github.com>
 TUI TOTP generator
 
@@ -44,6 +44,7 @@ SUBCOMMANDS:
     edit           Edit an existing account
     help           Print this message or the help of the given subcommand(s)
     interactive    Run in interactive mode [default]
+    secret         Extract the TOTP Secret from a record
     serve          Start an HTTP Server
 ```
 

@@ -81,8 +81,8 @@ impl StorageTrait for SqliteStorage {
     fn edit_account(&mut self, record: Record) -> Result<(), TotpError> {
         let secure_record = record.to_secure_record(&Encryption::default(), self.db.password())?;
         const SQL: &str = r#"
-        UPDATE secure_records SET account = ?1, user = ?2, password = ?3, note = ?4, updated_at = strftime('%s','now')
-            WHERE id = ?5;
+        UPDATE secure_records SET account = ?1, user = ?2, password = ?3, note = ?4, token = ?5, updated_at = strftime('%s','now')
+            WHERE id = ?6;
         "#;
         let conn = Connection::try_from(&self.db)?;
         let mut stmt = conn.prepare(SQL)?;
@@ -91,6 +91,7 @@ impl StorageTrait for SqliteStorage {
             secure_record.user,
             secure_record.password,
             secure_record.note,
+            secure_record.token,
             record.id
         ])?;
         self.load()?;
@@ -121,7 +122,6 @@ impl StorageTrait for SqliteStorage {
         let encryption = Encryption::default();
         for rec in self.secure_records.iter() {
             let record = Record::from_secure_record(rec, &encryption, self.db.password())?;
-
             accounts.push(record);
         }
         Ok(accounts)

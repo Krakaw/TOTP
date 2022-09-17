@@ -99,6 +99,10 @@ enum Commands {
         /// Password
         #[clap(short, long)]
         password: Option<String>,
+
+        /// TOTP Secret
+        #[clap(short, long)]
+        secret: Option<Token>,
     },
     /// Delete an account
     Delete {
@@ -125,6 +129,12 @@ enum Commands {
     },
     /// Dump the config file
     Dump,
+    /// Extract the TOTP Secret from a record
+    Secret {
+        /// Id
+        #[clap(short, long)]
+        id: u32,
+    },
     /// Start an HTTP Server
     Serve {
         /// Listening address
@@ -202,13 +212,34 @@ fn main() -> Result<(), TotpError> {
             user,
             note,
             password,
+            secret,
         } => {
             let mut record = storage.get_account(*id)?;
             record.account = account.clone().or(record.account);
             record.user = user.clone().or(record.user);
             record.note = note.clone().or(record.note);
             record.password = password.clone().or(record.password);
+            let token = match (record.token, secret) {
+                (Some(mut token), Some(secret)) => {
+                    token.secret = secret.secret.clone();
+                    Some(token)
+                }
+                (Some(token), _) => Some(token),
+                (_, Some(secret)) => Some(secret.clone()),
+                _ => None,
+            };
+
+            record.token = token;
+            eprintln!("record = {:?}", record);
             storage.edit_account(record)?;
+        }
+        Commands::Secret { id } => {
+            let record = storage.get_account(*id)?;
+            if let Some(token) = record.token {
+                println!("{}", token);
+            } else {
+                println!("No token found for record");
+            }
         }
         Commands::Delete { account } => {
             storage.remove_account(account.to_owned())?;
