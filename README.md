@@ -49,7 +49,7 @@ SUBCOMMANDS:
 
 ### Add accounts
 
-    tortp -p password add -a AccountName -s SecretToken -u Username -p Password123 -n Note
+    trotp -p password add -a AccountName -s SecretToken -u Username -p Password123 -n Note
 
 ### Delete an account
 
