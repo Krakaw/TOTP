@@ -4,6 +4,8 @@ use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::fmt::{Display, Formatter};
 use std::str::FromStr;
+use totp_rs::Secret;
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Token {
     pub secret: Vec<u8>,
@@ -40,7 +42,7 @@ impl TryFrom<String> for Token {
     type Error = TotpError;
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        let secret = BASE32.decode(value.trim_end().to_uppercase().as_bytes())?;
+        let secret = Secret::Encoded(value.trim_end().to_uppercase()).to_bytes()?;
         Ok(Token {
             secret,
             ..Token::default()
@@ -52,7 +54,7 @@ impl FromStr for Token {
     type Err = TotpError;
 
     fn from_str(value: &str) -> Result<Self, Self::Err> {
-        let secret = BASE32.decode(value.trim_end().to_uppercase().as_bytes())?;
+        let secret = Secret::Encoded(value.trim_end().to_uppercase()).to_bytes()?;
         Ok(Token {
             secret,
             ..Token::default()
