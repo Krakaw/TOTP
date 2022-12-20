@@ -23,6 +23,7 @@ pub enum TotpError {
     HttpServer(String),
     R2d2(String),
     Migration(String),
+    SecretParseError(String),
 }
 
 impl Error for TotpError {}
@@ -32,7 +33,11 @@ impl Display for TotpError {
         write!(f, "TOTP Error: {:?}", self)
     }
 }
-
+impl From<totp_rs::SecretParseError> for TotpError {
+    fn from(e: totp_rs::SecretParseError) -> Self {
+        TotpError::SecretParseError(format!("{:?}", e))
+    }
+}
 impl From<r2d2::Error> for TotpError {
     fn from(e: r2d2::Error) -> Self {
         TotpError::R2d2(e.to_string())

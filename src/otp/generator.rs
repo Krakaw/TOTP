@@ -12,15 +12,15 @@ pub struct Generator {
 impl Generator {
     pub fn new(token: Token) -> Result<Self, TotpError> {
         let step = token.step;
-        let totp = TOTP::new(
-            Algorithm::SHA1,
-            token.digits,
-            token.skew,
+        let totp: TOTP<Token> = TOTP {
+            algorithm: Algorithm::SHA1,
+            digits: token.digits,
+            skew: token.skew,
             step,
-            token,
-            None,
-            "".to_string(),
-        )?;
+            secret: token,
+        };
+
+        // let totp = TOTP::new(Algorithm::SHA1, token.digits, token.skew, step, token)?;
         Ok(Self { totp, step })
     }
 
@@ -69,9 +69,11 @@ mod tests {
     use super::*;
     use chrono::Timelike;
     use std::str::FromStr;
+    use totp_rs::{Rfc6238, Secret};
 
     #[test]
     fn generate() {
+        eprintln!("Token = {:?}", Token::from_str("JBSWY3DPEHPK3PXP"));
         let secret = Token::from_str("JBSWY3DPEHPK3PXP").unwrap();
         let generator = Generator::new(secret).unwrap();
         let (token, _) = generator.generate(Some(1654258053)).unwrap();
