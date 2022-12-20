@@ -1,7 +1,7 @@
 use crate::errors::TotpError;
 use crate::otp::token::Token;
 use chrono::NaiveDateTime;
-use totp_rs::{Algorithm, Rfc6238, Secret, TOTP};
+use totp_rs::{Algorithm, TOTP};
 
 #[derive(Clone)]
 pub struct Generator {
