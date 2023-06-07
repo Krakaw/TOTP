@@ -2,11 +2,10 @@ use crate::ui::state::{ActivePane, State};
 use crate::ui::widgets::popup::{Popup, Position, Size};
 use crate::{StorageTrait, TotpError};
 use chrono::Utc;
-#[cfg(feature = "cli-clipboard")]
-use cli_clipboard::set_contents;
 use std::ops::Add;
 use tui::style::{Color, Style};
 use tui::widgets::{ListState, TableState};
+use crate::ui::clip::set_clipboard;
 
 const POPUP_DELAY: i64 = 500;
 pub struct App {
@@ -117,7 +116,7 @@ impl App {
         if let Some((title, message, colour)) = match self.state.active_pane {
             ActivePane::OtpTable => {
                 if let Some(i) = self.table_state.selected() {
-                    match set_contents(self.state.display_otps[i].1.clone()) {
+                    match set_clipboard(self.state.display_otps[i].1.clone()) {
                         Ok(_) => Some((
                             "OTP Copied".to_string(),
                             "Successfully copied OTP".to_string(),
@@ -151,7 +150,7 @@ impl App {
                                 "Successfully copied password",
                             ),
                         };
-                        match set_contents(value) {
+                        match set_clipboard(value) {
                             Ok(_) => Some((
                                 "Detail Copied".to_string(),
                                 content.to_string(),

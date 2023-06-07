@@ -24,6 +24,7 @@ pub enum TotpError {
     R2d2(String),
     Migration(String),
     SecretParseError(String),
+    ClipboardError(String),
 }
 
 impl Error for TotpError {}

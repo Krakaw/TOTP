@@ -48,6 +48,7 @@ urlencoding = "2.1.0"
 
 [features]
 default = ["cli-clipboard"]
+clip = ["cli-clipboard"]
 
 [profile.release]
 strip = true
