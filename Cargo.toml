@@ -29,7 +29,8 @@ wasm-bindgen = "0.2"
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 chrono = { version = "0.4", features = ["serde"] }
 clap = {version = "3.1.18", features = ["derive"]}
-cli-clipboard = { version= "0.2.1", optional = true }
+#cli-clipboard = { version= "0.3.0", optional = true }
+arboard = {  version= "3.3.0", optional = true }
 crossterm = "0.25.0"
 ctrlc = "3"
 env_logger = "0.9.0"
@@ -47,11 +48,12 @@ tui = "0.19.0"
 urlencoding = "2.1.0"
 
 [features]
-default = ["cli-clipboard"]
-clip = ["cli-clipboard"]
+default = ["arboard"]
+clip = ["arboard"]
 
 [profile.release]
 strip = true
 opt-level = "z"
 lto = true
 codegen-units = 1
+

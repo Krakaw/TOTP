@@ -91,7 +91,7 @@ impl Popup {
         let Size { x, y } = size;
         let popup_layout = Layout::default()
             .direction(Direction::Vertical)
-            .constraints(self.vertical_constraints(y).as_ref())
+            .constraints(self.vertical_constraints(y))
             .split(r);
 
         Layout::default()
