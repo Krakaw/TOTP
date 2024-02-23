@@ -11,7 +11,7 @@ use crate::ui::app::App;
 use crate::ui::event_handler::{Event, EventHandler};
 use crate::ui::tui::Tui;
 use chrono::{DateTime, FixedOffset};
-use clap::{Parser, Subcommand};
+use clap::{Parser, Subcommand, ValueEnum};
 use db::storage::StorageTrait;
 use env_logger::Env;
 use otp::generator::Generator;
@@ -25,7 +25,7 @@ mod otp;
 mod ui;
 
 /// A CLI and TUI TOTP manager
-#[derive(Parser, Debug)]
+#[derive(Parser)]
 #[clap(author, version, about, long_about = None)]
 struct Cli {
     /// The encryption password
@@ -42,7 +42,15 @@ struct Cli {
     command: Option<Commands>,
 }
 
-#[derive(Subcommand, Debug)]
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
+enum OutputFormat {
+    /// Json
+    Json,
+    /// List
+    List,
+}
+
+#[derive(Subcommand)]
 enum Commands {
     /// Add a new account
     Add {
@@ -128,7 +136,12 @@ enum Commands {
         range: u64,
     },
     /// Dump the config file
-    Dump,
+    Dump {
+        /// The format to dump in
+        #[clap(short, long, default_value = "list")]
+        #[arg(value_enum)]
+        format: OutputFormat,
+    },
     /// Extract the TOTP Secret from a record
     Secret {
         /// Id
@@ -261,8 +274,29 @@ fn main() -> Result<(), TotpError> {
                 start.offset()
             );
         }
-        Commands::Dump => {
-            println!("{}", serde_json::to_string(&storage.accounts()?)?);
+        Commands::Dump { format } => {
+            if format == &OutputFormat::Json {
+                println!("{}", serde_json::to_string(&storage.accounts()?)?);
+            } else if format == &OutputFormat::List {
+                println!(
+                    "{: <10} | {: <10} | {: <10} | {: <10} | {: <10} | {: <10}",
+                    "ID", "Account", "Token", "User", "Password", "Note",
+                );
+                for record in storage.accounts()? {
+                    println!(
+                        "{: <10} | {: <10} | {: <10} | {: <10} | {: <10} | {: <10}",
+                        record.id,
+                        record.account.unwrap_or_else(|| "".to_string()),
+                        record
+                            .token
+                            .map(|t| format!("{}", t))
+                            .unwrap_or("".to_string()),
+                        record.user.unwrap_or_else(|| "".to_string()),
+                        record.password.unwrap_or_else(|| "".to_string()),
+                        record.note.unwrap_or_else(|| "".to_string()),
+                    );
+                }
+            }
         }
         Commands::Interactive => {
             ui::init(storage)?;
