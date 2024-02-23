@@ -278,13 +278,51 @@ fn main() -> Result<(), TotpError> {
             if format == &OutputFormat::Json {
                 println!("{}", serde_json::to_string(&storage.accounts()?)?);
             } else if format == &OutputFormat::List {
+                let mut id_length = 2;
+                let mut account_length = 30;
+                let mut token_length = 20;
+                let mut user_length = 10;
+                let mut password_length = 10;
+                let mut note_length = 10;
+                for record in storage.accounts()? {
+                    id_length = id_length.max(format!("{}", record.id).len());
+                    account_length =
+                        account_length.max(record.account.unwrap_or_else(|| "".to_string()).len());
+                    token_length = token_length.max(
+                        record
+                            .token
+                            .map(|t| format!("{}", t))
+                            .unwrap_or("".to_string())
+                            .len(),
+                    );
+                    user_length =
+                        user_length.max(record.user.unwrap_or_else(|| "".to_string()).len());
+                    password_length = password_length
+                        .max(record.password.unwrap_or_else(|| "".to_string()).len());
+                    note_length =
+                        note_length.max(record.note.unwrap_or_else(|| "".to_string()).len());
+                }
+
+                // Use the above lengths to set the format lengths
                 println!(
-                    "{: <10} | {: <10} | {: <10} | {: <10} | {: <10} | {: <10}",
-                    "ID", "Account", "Token", "User", "Password", "Note",
+                    "{: <id_length$} | {: <account_length$} | {: <token_length$} | {: <user_length$} | {: <password_length$} | {: <10}",
+                    "ID",
+                    "Account",
+                    "Token",
+                    "User",
+                    "Password",
+                    "Note",
+                    id_length = id_length,
+                    account_length = account_length,
+                    token_length = token_length,
+                    user_length = user_length,
+                    password_length = password_length,
                 );
+
                 for record in storage.accounts()? {
                     println!(
-                        "{: <10} | {: <10} | {: <10} | {: <10} | {: <10} | {: <10}",
+                        "{: <id_length$} | {: <account_length$} | {: <token_length$} | {: <user_length$} | {: <password_length$} | {: <10}",
+
                         record.id,
                         record.account.unwrap_or_else(|| "".to_string()),
                         record
@@ -294,6 +332,11 @@ fn main() -> Result<(), TotpError> {
                         record.user.unwrap_or_else(|| "".to_string()),
                         record.password.unwrap_or_else(|| "".to_string()),
                         record.note.unwrap_or_else(|| "".to_string()),
+                        id_length = id_length,
+                        account_length = account_length,
+                        token_length = token_length,
+                        user_length = user_length,
+                        password_length = password_length,
                     );
                 }
             }
