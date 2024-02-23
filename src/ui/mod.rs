@@ -4,12 +4,12 @@ use ::tui::Terminal;
 use std::io;
 
 pub mod app;
+pub mod clip;
 pub mod event_handler;
 pub mod handler;
 mod state;
 pub mod tui;
 pub mod widgets;
-pub mod clip;
 
 pub fn init<T: StorageTrait>(storage: T) -> Result<(), TotpError> {
     let mut app: App = App::new(storage)?;
