@@ -1,6 +1,6 @@
 [package]
 name = "trotp"
-version = "1.1.1"
+version = "1.1.2"
 edition = "2021"
 authors = ["Krakaw <41575888+Krakaw@users.noreply.github.com>"]
 license = "MIT"
