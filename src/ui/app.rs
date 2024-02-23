@@ -1,3 +1,4 @@
+use crate::ui::clip::set_clipboard;
 use crate::ui::state::{ActivePane, State};
 use crate::ui::widgets::popup::{Popup, Position, Size};
 use crate::{StorageTrait, TotpError};
@@ -5,7 +6,6 @@ use chrono::Utc;
 use std::ops::Add;
 use tui::style::{Color, Style};
 use tui::widgets::{ListState, TableState};
-use crate::ui::clip::set_clipboard;
 
 const POPUP_DELAY: i64 = 500;
 pub struct App {
@@ -46,6 +46,29 @@ impl App {
                 let selected_index =
                     self.move_down_list(self.detail_state.selected(), &vec![0, 0, 0]);
                 self.detail_state.select(selected_index);
+            }
+        }
+    }
+
+    pub fn move_to_end(&mut self) {
+        match self.state.active_pane {
+            ActivePane::OtpTable => {
+                let selected_index = self.state.display_otps.len().saturating_sub(1);
+                self.table_state.select(Some(selected_index));
+            }
+            ActivePane::DetailView => {
+                self.detail_state.select(Some(2));
+            }
+        }
+    }
+
+    pub fn move_to_start(&mut self) {
+        match self.state.active_pane {
+            ActivePane::OtpTable => {
+                self.table_state.select(Some(0));
+            }
+            ActivePane::DetailView => {
+                self.detail_state.select(Some(0));
             }
         }
     }

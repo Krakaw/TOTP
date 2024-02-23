@@ -17,6 +17,8 @@ pub fn handle_key_events<B: Backend>(
         (KeyCode::Up, _) => app.move_up(),
         (KeyCode::Enter, _) => app.set_clipboard(),
         (KeyCode::Tab, _) => app.toggle_list_detail_mode(),
+        (KeyCode::End, _) => app.move_to_end(),
+        (KeyCode::Home, _) => app.move_to_start(),
         _ => {}
     };
     match app.state.input_mode {
