@@ -106,9 +106,9 @@ enum Commands {
     },
     /// Delete an account
     Delete {
-        /// Account name
+        /// Id of account to delete
         #[clap(short, long)]
-        account: String,
+        id: u32,
     },
     /// Run in interactive mode [default]
     Interactive,
@@ -241,8 +241,8 @@ fn main() -> Result<(), TotpError> {
                 println!("No token found for record");
             }
         }
-        Commands::Delete { account } => {
-            storage.remove_account(account.to_owned())?;
+        Commands::Delete { id } => {
+            storage.remove_account_by_id(id.to_owned())?;
         }
         Commands::Check {
             token,
