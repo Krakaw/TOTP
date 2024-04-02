@@ -8,24 +8,21 @@ pub type TotpCode = String;
 type ExpirySeconds = u64;
 type RecordId = u32;
 
-#[derive(PartialEq, Eq)]
+#[derive(PartialEq, Eq, Default)]
 pub enum InputMode {
+    #[default]
     Normal,
     FilterList,
     EditDetail,
 }
 
-impl Default for InputMode {
-    fn default() -> Self {
-        InputMode::Normal
-    }
-}
-
-#[derive(PartialEq, Eq)]
+#[derive(PartialEq, Eq, Default)]
 pub enum ActivePane {
+    #[default]
     OtpTable,
     DetailView,
 }
+
 #[derive(PartialEq, Eq)]
 pub enum DetailInputType {
     Password,
@@ -33,11 +30,7 @@ pub enum DetailInputType {
     Note,
 }
 
-impl Default for ActivePane {
-    fn default() -> Self {
-        ActivePane::OtpTable
-    }
-}
+
 pub struct State {
     pub input_mode: InputMode,
     pub active_pane: ActivePane,

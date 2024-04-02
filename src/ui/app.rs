@@ -43,8 +43,7 @@ impl App {
                 self.table_state.select(selected_index);
             }
             ActivePane::DetailView => {
-                let selected_index =
-                    self.move_down_list(self.detail_state.selected(), &vec![0, 0, 0]);
+                let selected_index = self.move_down_list(self.detail_state.selected(), &[0, 0, 0]);
                 self.detail_state.select(selected_index);
             }
         }
@@ -81,14 +80,13 @@ impl App {
                 self.table_state.select(selected_index);
             }
             ActivePane::DetailView => {
-                let selected_index =
-                    self.move_up_list(self.detail_state.selected(), &vec![0, 0, 0]);
+                let selected_index = self.move_up_list(self.detail_state.selected(), &[0, 0, 0]);
                 self.detail_state.select(selected_index);
             }
         }
     }
 
-    fn move_down_list<T>(&self, selected: Option<usize>, items: &Vec<T>) -> Option<usize> {
+    fn move_down_list<T>(&self, selected: Option<usize>, items: &[T]) -> Option<usize> {
         let i = match selected {
             Some(i) => {
                 if !items.is_empty() && i >= items.len() - 1 {
@@ -102,7 +100,7 @@ impl App {
         Some(i)
     }
 
-    fn move_up_list<T>(&self, selected: Option<usize>, items: &Vec<T>) -> Option<usize> {
+    fn move_up_list<T>(&self, selected: Option<usize>, items: &[T]) -> Option<usize> {
         let selected_value = match selected {
             Some(i) => {
                 if !items.is_empty() && i == 0 {
