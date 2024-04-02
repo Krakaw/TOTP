@@ -30,7 +30,6 @@ pub enum DetailInputType {
     Note,
 }
 
-
 pub struct State {
     pub input_mode: InputMode,
     pub active_pane: ActivePane,
