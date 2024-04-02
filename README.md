@@ -8,7 +8,7 @@ Running `trotp` without any arguments will run the TUI interface.
 
 [![Lint and Test](https://github.com/Krakaw/TOTP/actions/workflows/test.yml/badge.svg)](https://github.com/Krakaw/TOTP/actions/workflows/test.yml)
 
-![](demo/demo.gif)
+![](demo/demo.webm)
 
 ## Installation
 
@@ -22,30 +22,27 @@ trotp --help
 ```
 
 ```
-trotp 1.0.5
-Krakaw <41575888+Krakaw@users.noreply.github.com>
 TUI TOTP generator
 
-USAGE:
-    trotp [OPTIONS] [SUBCOMMAND]
+Usage: trotp [OPTIONS] [COMMAND]
 
-OPTIONS:
-    -a, --auto-lock-key                Automatically set the table lock key
-    -h, --help                         Print help information
-    -p, --password <PASSWORD>          The encryption password
-    -s, --sqlite-path <SQLITE_PATH>    The sqlite filename [default: .totp.sqlite3]
-    -V, --version                      Print version information
+Commands:
+  add          Add a new account
+  edit         Edit an existing account
+  delete       Delete an account
+  interactive  Run in interactive mode [default]
+  check        Check an OTP
+  dump         Dump the config file
+  secret       Extract the TOTP Secret from a record
+  serve        Start an HTTP Server
+  help         Print this message or the help of the given subcommand(s)
 
-SUBCOMMANDS:
-    add            Add a new account
-    check          Check an OTP
-    delete         Delete an account
-    dump           Dump the config file
-    edit           Edit an existing account
-    help           Print this message or the help of the given subcommand(s)
-    interactive    Run in interactive mode [default]
-    secret         Extract the TOTP Secret from a record
-    serve          Start an HTTP Server
+Options:
+  -p, --password <PASSWORD>        The encryption password
+  -s, --sqlite-path <SQLITE_PATH>  The sqlite filename [default: .totp.sqlite3]
+  -a, --auto-lock-key              Automatically set the table lock key
+  -h, --help                       Print help
+  -V, --version                    Print version
 ```
 
 ### Add accounts
