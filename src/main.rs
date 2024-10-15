@@ -8,6 +8,7 @@ use crate::db::models::record::Record;
 use crate::db::Db;
 use crate::errors::TotpError;
 use crate::ui::app::App;
+use crate::ui::clip::set_clipboard;
 use crate::ui::event_handler::{Event, EventHandler};
 use crate::ui::tui::Tui;
 use chrono::{DateTime, FixedOffset};

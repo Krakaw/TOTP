@@ -6,7 +6,7 @@ pub fn set_clipboard(content: String) -> Result<(), TotpError> {
         let executable = if cfg!(target_os = "windows") {
             "clip.exe"
         } else {
-            "xclip"
+            "xsel --clipboard --input"
         };
         Command::new("sh")
             .args(["-c", &format!("echo '{}' | {}", content, executable)])
