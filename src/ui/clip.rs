@@ -9,7 +9,7 @@ pub fn set_clipboard(content: String) -> Result<(), TotpError> {
             "xsel --clipboard --input"
         };
         Command::new("sh")
-            .args(["-c", &format!("echo '{}' | {}", content, executable)])
+            .args(["-c", &format!("echo -n '{}' | {}", content, executable)])
             .output()
             .map_err(|e| TotpError::ClipboardError(e.to_string()))?;
     } else if cfg!(feature = "arboard") {

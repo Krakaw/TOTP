@@ -1,6 +1,6 @@
 [package]
 name = "trotp"
-version = "1.1.5"
+version = "1.1.6"
 edition = "2021"
 authors = ["Krakaw <41575888+Krakaw@users.noreply.github.com>"]
 license = "MIT"
@@ -28,8 +28,8 @@ wasm-bindgen = "0.2"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 chrono = { version = "0.4", features = ["serde"] }
-clap = {version = "4.5.1", features = ["derive"]}
-arboard = {  version= "3.4.1", optional = true, features = ["wayland-data-control"]}
+clap = { version = "4.5.1", features = ["derive"] }
+arboard = { version = "3.4.1", optional = true, features = ["wayland-data-control"] }
 crossterm = "0.27.0"
 ctrlc = "3"
 env_logger = "0.11.2"
