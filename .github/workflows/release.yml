@@ -45,11 +45,16 @@ jobs:
           cargo build --release --target x86_64-unknown-linux-gnu
           ls -la target/x86_64-unknown-linux-gnu/release/
 
+      - name: Prepare x86_64 binary
+        run: |
+          cp target/x86_64-unknown-linux-gnu/release/trotp trotp-x86_64-unknown-linux-gnu
+          chmod +x trotp-x86_64-unknown-linux-gnu
+
       - name: Upload x86_64 artifact
         uses: actions/upload-artifact@v4
         with:
           name: trotp-x86_64-unknown-linux-gnu
-          path: target/x86_64-unknown-linux-gnu/release/trotp
+          path: trotp-x86_64-unknown-linux-gnu
           if-no-files-found: error
 
   build-arm64-macos:
@@ -73,11 +78,16 @@ jobs:
           cargo build --release --target aarch64-apple-darwin
           ls -la target/aarch64-apple-darwin/release/
 
+      - name: Prepare ARM64 binary
+        run: |
+          cp target/aarch64-apple-darwin/release/trotp trotp-aarch64-apple-darwin
+          chmod +x trotp-aarch64-apple-darwin
+
       - name: Upload ARM64 macOS artifact
         uses: actions/upload-artifact@v4
         with:
           name: trotp-aarch64-apple-darwin
-          path: target/aarch64-apple-darwin/release/trotp
+          path: trotp-aarch64-apple-darwin
           if-no-files-found: error
 
   release:
@@ -106,7 +116,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            artifacts/trotp-x86_64-unknown-linux-gnu/trotp
-            artifacts/trotp-aarch64-apple-darwin/trotp
+            artifacts/trotp-x86_64-unknown-linux-gnu/trotp-x86_64-unknown-linux-gnu
+            artifacts/trotp-aarch64-apple-darwin/trotp-aarch64-apple-darwin
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
