@@ -7,23 +7,41 @@ use totp_rs::TotpUrlError;
 
 #[derive(Debug)]
 pub enum TotpError {
+    #[allow(dead_code)]
     AccountNotFound(String),
+    #[allow(dead_code)]
     Base32Decode(String),
+    #[allow(dead_code)]
     Clap(String),
+    #[allow(dead_code)]
     TotpUrl(String),
+    #[allow(dead_code)]
     Format(String),
+    #[allow(dead_code)]
     Encryption(String),
+    #[allow(dead_code)]
     Decryption(String),
     MissingLockKey,
+    #[allow(dead_code)]
     Utf8(String),
     InvalidOtpForRange,
+    #[allow(dead_code)]
     Ui(String),
+    #[allow(dead_code)]
     UiEvent(String),
+    #[allow(dead_code)]
     Json(String),
+    #[allow(dead_code)]
     HttpServer(String),
+    #[allow(dead_code)]
     R2d2(String),
+    #[allow(dead_code)]
     Migration(String),
+    #[allow(dead_code)]
+    Storage(String),
+    #[allow(dead_code)]
     SecretParseError(String),
+    #[allow(dead_code)]
     ClipboardError(String),
 }
 

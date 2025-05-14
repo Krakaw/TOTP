@@ -48,7 +48,7 @@ pub enum Connection<'a> {
     Transaction(Transaction<'a>),
 }
 
-impl<'a> TryFrom<&Db> for Connection<'a> {
+impl TryFrom<&Db> for Connection<'_> {
     type Error = TotpError;
 
     fn try_from(db: &Db) -> Result<Self, Self::Error> {
