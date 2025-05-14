@@ -33,18 +33,26 @@ jobs:
         with:
           targets: x86_64-unknown-linux-gnu
 
+      - name: Show Rust version
+        run: |
+          rustc --version
+          cargo --version
+
       - name: Build x86_64
         env:
           OPENSSL_DIR: /usr
           OPENSSL_INCLUDE_DIR: /usr/include
           OPENSSL_LIB_DIR: /usr/lib/x86_64-linux-gnu
-        run: cargo build --release --target x86_64-unknown-linux-gnu
+        run: |
+          cargo build --release --target x86_64-unknown-linux-gnu
+          ls -la target/x86_64-unknown-linux-gnu/release/
 
       - name: Upload x86_64 artifact
         uses: actions/upload-artifact@v4
         with:
-          name: totp-x86_64-unknown-linux-gnu
-          path: target/x86_64-unknown-linux-gnu/release/totp
+          name: trotp-x86_64-unknown-linux-gnu
+          path: target/x86_64-unknown-linux-gnu/release/trotp
+          if-no-files-found: error
 
   build-arm64:
     name: Build for ARM64
@@ -57,12 +65,17 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y pkg-config gcc-aarch64-linux-gnu crossbuild-essential-arm64
           # Install ARM64 OpenSSL development packages
-          sudo apt-get install -y libssl-dev:arm64
+          sudo apt-get install -y libssl-dev
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: aarch64-unknown-linux-gnu
+
+      - name: Show Rust version
+        run: |
+          rustc --version
+          cargo --version
 
       - name: Setup ARM64 OpenSSL
         run: |
@@ -81,13 +94,16 @@ jobs:
           OPENSSL_LIB_DIR: /usr/local/aarch64-linux-gnu/lib
           CC_aarch64_unknown_linux_gnu: aarch64-linux-gnu-gcc
           AR_aarch64_unknown_linux_gnu: aarch64-linux-gnu-ar
-        run: cargo build --release --target aarch64-unknown-linux-gnu
+        run: |
+          cargo build --release --target aarch64-unknown-linux-gnu
+          ls -la target/aarch64-unknown-linux-gnu/release/
 
       - name: Upload ARM64 artifact
         uses: actions/upload-artifact@v4
         with:
-          name: totp-aarch64-unknown-linux-gnu
-          path: target/aarch64-unknown-linux-gnu/release/totp
+          name: trotp-aarch64-unknown-linux-gnu
+          path: target/aarch64-unknown-linux-gnu/release/trotp
+          if-no-files-found: error
 
   release:
     name: Create Release
@@ -106,7 +122,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            artifacts/totp-x86_64-unknown-linux-gnu
-            artifacts/totp-aarch64-unknown-linux-gnu
+            artifacts/trotp-x86_64-unknown-linux-gnu
+            artifacts/trotp-aarch64-unknown-linux-gnu
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
