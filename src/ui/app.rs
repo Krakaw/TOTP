@@ -17,7 +17,7 @@ pub struct App {
     pub detail_state: ListState,
 }
 impl App {
-    pub fn new<T: StorageTrait>(storage: T) -> Result<Self, TotpError> {
+    pub fn new<T: StorageTrait + 'static>(storage: T) -> Result<Self, TotpError> {
         Ok(Self {
             state: State::new(storage)?,
             table_state: TableState::default(),

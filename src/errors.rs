@@ -23,6 +23,7 @@ pub enum TotpError {
     HttpServer(String),
     R2d2(String),
     Migration(String),
+    Storage(String),
     SecretParseError(String),
     ClipboardError(String),
 }

@@ -14,6 +14,7 @@ pub enum InputMode {
     Normal,
     FilterList,
     EditDetail,
+    DeleteConfirmation,
 }
 
 #[derive(PartialEq, Eq, Default)]
@@ -41,6 +42,7 @@ pub struct State {
     pub display_otps: Vec<(TotpAccountName, TotpCode, ExpirySeconds, RecordId)>,
     pub running: bool,
     pub show_popup: Option<Popup>,
+    pub storage: Option<Box<dyn StorageTrait + 'static>>,
 }
 
 impl Default for State {
@@ -56,15 +58,30 @@ impl Default for State {
             display_otps: vec![],
             running: true,
             show_popup: None,
+            storage: None,
         }
     }
 }
 
 impl State {
-    pub fn new<T: StorageTrait>(storage: T) -> Result<Self, TotpError> {
+    pub fn new<T: StorageTrait + 'static>(storage: T) -> Result<Self, TotpError> {
+        let mut state = Self {
+            items: vec![],
+            records: vec![],
+            storage: Some(Box::new(storage)),
+            ..State::default()
+        };
+        state.build_records()?;
+        Ok(state)
+    }
+
+    pub fn build_records(&mut self) -> Result<(), TotpError> {
         let mut items = vec![];
         let mut records = vec![];
-        for record in storage.accounts()?.iter() {
+        for record in self.storage.as_ref().ok_or(TotpError::Storage("Storage not found".to_string()))?
+            .accounts()?
+            .iter()
+        {
             records.push(record.clone());
             let generator = record
                 .token
@@ -78,10 +95,8 @@ impl State {
             ));
         }
         items.sort_by(|a, b| a.0.cmp(&b.0));
-        Ok(Self {
-            items,
-            records,
-            ..State::default()
-        })
+        self.items = items;
+        self.records = records;
+        Ok(())
     }
 }
