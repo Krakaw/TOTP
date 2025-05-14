@@ -1,4 +1,4 @@
-FROM rust:1.61.0-bullseye as builder
+FROM rust:1.82.0-bullseye as builder
 WORKDIR /usr/src/totp
 RUN sed -i "s#http://deb.debian.org/#https://debian.mirror.ac.za/#g" /etc/apt/sources.list
 RUN apt-get update && \

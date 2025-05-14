@@ -78,7 +78,10 @@ impl State {
     pub fn build_records(&mut self) -> Result<(), TotpError> {
         let mut items = vec![];
         let mut records = vec![];
-        for record in self.storage.as_ref().ok_or(TotpError::Storage("Storage not found".to_string()))?
+        for record in self
+            .storage
+            .as_ref()
+            .ok_or(TotpError::Storage("Storage not found".to_string()))?
             .accounts()?
             .iter()
         {

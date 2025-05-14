@@ -46,7 +46,8 @@ pub fn handle_normal_mode(key_event: KeyEvent, app: &mut App) {
             }
         }
         (KeyCode::Char('d'), _) => {
-            if app.state.active_pane == ActivePane::OtpTable && app.table_state.selected().is_some() {
+            if app.state.active_pane == ActivePane::OtpTable && app.table_state.selected().is_some()
+            {
                 app.state.input_mode = InputMode::DeleteConfirmation;
                 app.state.show_popup = Some(Popup {
                     title: "Confirm Delete".to_string(),
@@ -103,7 +104,7 @@ pub fn handle_delete_confirmation(key_event: KeyEvent, app: &mut App) -> Result<
                     if let Some(storage) = app.state.storage.as_mut() {
                         storage.remove_account_by_id(*record_id)?;
                         app.state.build_records()?;
-                      
+
                         // app.state.records = records;
                     }
                 }
