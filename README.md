@@ -79,7 +79,7 @@ Options:
 #### Global Key Bindings
 | Key Binding | Action                          |
 |-------------|---------------------------------|
-| `/`         | Switch to insert mode           |
+| `/`         | Switch to search mode           |
 | `Esc`       | Switch to normal mode           |
 | `Tab`       | Toggle password mode            |
 | `Down`      | Select next account             |
