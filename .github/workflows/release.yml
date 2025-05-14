@@ -2,6 +2,8 @@ name: Release
 
 on:
   push:
+    branches:
+      - main
     tags:
       - 'v*'
   workflow_dispatch:
@@ -34,6 +36,9 @@ jobs:
           if [ "${{ matrix.target }}" = "aarch64-unknown-linux-gnu" ]; then
             sudo apt-get install -y crossbuild-essential-arm64
           fi
+          # Ensure OpenSSL libraries are in the correct location
+          sudo ln -sf /usr/lib/x86_64-linux-gnu/libssl.so /usr/lib/libssl.so
+          sudo ln -sf /usr/lib/x86_64-linux-gnu/libcrypto.so /usr/lib/libcrypto.so
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -45,7 +50,8 @@ jobs:
           PKG_CONFIG_ALLOW_CROSS: 1
           OPENSSL_DIR: /usr
           OPENSSL_INCLUDE_DIR: /usr/include
-          OPENSSL_LIB_DIR: /usr/lib
+          OPENSSL_LIB_DIR: /usr/lib/x86_64-linux-gnu
+          OPENSSL_STATIC: 0
         run: cargo build --release --target ${{ matrix.target }}
 
       - name: Upload artifact
