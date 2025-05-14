@@ -49,6 +49,7 @@ urlencoding = "2.1.0"
 [features]
 default = ["arboard"]
 clip = ["arboard"]
+cli-clipboard = []
 
 [profile.release]
 strip = true
