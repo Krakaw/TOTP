@@ -86,3 +86,4 @@ Options:
 | `Up`        | Select previous account         |
 | `Enter`     | Copy OTP or Detail to clipboard |
 | `Ctrl-c`    | Exit                            |
+| `d`         | Delete selected account         |
