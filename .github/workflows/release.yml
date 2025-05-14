@@ -17,52 +17,81 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
-    name: Build for ${{ matrix.target }}
+  build-x86_64:
+    name: Build for x86_64
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        target:
-          - x86_64-unknown-linux-gnu
-          - aarch64-unknown-linux-gnu
-
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install dependencies
+      - name: Install x86_64 dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y pkg-config libssl-dev gcc-aarch64-linux-gnu
-          if [ "${{ matrix.target }}" = "aarch64-unknown-linux-gnu" ]; then
-            sudo apt-get install -y crossbuild-essential-arm64
-          fi
-          # Ensure OpenSSL libraries are in the correct location
-          sudo ln -sf /usr/lib/x86_64-linux-gnu/libssl.so /usr/lib/libssl.so
-          sudo ln -sf /usr/lib/x86_64-linux-gnu/libcrypto.so /usr/lib/libcrypto.so
+          sudo apt-get install -y pkg-config libssl-dev
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: ${{ matrix.target }}
+          targets: x86_64-unknown-linux-gnu
 
-      - name: Build
+      - name: Build x86_64
         env:
-          PKG_CONFIG_ALLOW_CROSS: 1
           OPENSSL_DIR: /usr
           OPENSSL_INCLUDE_DIR: /usr/include
           OPENSSL_LIB_DIR: /usr/lib/x86_64-linux-gnu
-          OPENSSL_STATIC: 0
-        run: cargo build --release --target ${{ matrix.target }}
+        run: cargo build --release --target x86_64-unknown-linux-gnu
 
-      - name: Upload artifact
+      - name: Upload x86_64 artifact
         uses: actions/upload-artifact@v4
         with:
-          name: totp-${{ matrix.target }}
-          path: target/${{ matrix.target }}/release/totp
+          name: totp-x86_64-unknown-linux-gnu
+          path: target/x86_64-unknown-linux-gnu/release/totp
+
+  build-arm64:
+    name: Build for ARM64
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install ARM64 dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pkg-config gcc-aarch64-linux-gnu crossbuild-essential-arm64
+          # Install ARM64 OpenSSL development packages
+          sudo apt-get install -y libssl-dev:arm64
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-unknown-linux-gnu
+
+      - name: Setup ARM64 OpenSSL
+        run: |
+          # Create necessary directories
+          sudo mkdir -p /usr/local/aarch64-linux-gnu/lib
+          sudo mkdir -p /usr/local/aarch64-linux-gnu/include
+          # Copy ARM64 OpenSSL files to the correct location
+          sudo cp -r /usr/lib/aarch64-linux-gnu/* /usr/local/aarch64-linux-gnu/lib/
+          sudo cp -r /usr/include/aarch64-linux-gnu/openssl /usr/local/aarch64-linux-gnu/include/
+
+      - name: Build ARM64
+        env:
+          PKG_CONFIG_ALLOW_CROSS: 1
+          OPENSSL_DIR: /usr/local/aarch64-linux-gnu
+          OPENSSL_INCLUDE_DIR: /usr/local/aarch64-linux-gnu/include
+          OPENSSL_LIB_DIR: /usr/local/aarch64-linux-gnu/lib
+          CC_aarch64_unknown_linux_gnu: aarch64-linux-gnu-gcc
+          AR_aarch64_unknown_linux_gnu: aarch64-linux-gnu-ar
+        run: cargo build --release --target aarch64-unknown-linux-gnu
+
+      - name: Upload ARM64 artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: totp-aarch64-unknown-linux-gnu
+          path: target/aarch64-unknown-linux-gnu/release/totp
 
   release:
     name: Create Release
-    needs: build
+    needs: [build-x86_64, build-arm64]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
