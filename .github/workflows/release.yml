@@ -92,12 +92,21 @@ jobs:
         with:
           path: artifacts
 
+      - name: List artifacts
+        run: |
+          echo "Listing artifacts directory:"
+          ls -la artifacts/
+          echo "Listing x86_64 artifact:"
+          ls -la artifacts/trotp-x86_64-unknown-linux-gnu/
+          echo "Listing ARM64 artifact:"
+          ls -la artifacts/trotp-aarch64-apple-darwin/
+
       - name: Create Release
         id: create_release
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            artifacts/trotp-x86_64-unknown-linux-gnu
-            artifacts/trotp-aarch64-apple-darwin
+            artifacts/trotp-x86_64-unknown-linux-gnu/trotp
+            artifacts/trotp-aarch64-apple-darwin/trotp
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
