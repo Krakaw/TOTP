@@ -112,11 +112,10 @@ pub fn handle_delete_confirmation(key_event: KeyEvent, app: &mut App) -> Result<
             app.state.input_mode = InputMode::Normal;
             app.state.show_popup = None;
         }
-        KeyCode::Char('n') | KeyCode::Esc => {
+        _ => {
             app.state.input_mode = InputMode::Normal;
             app.state.show_popup = None;
         }
-        _ => {}
     }
     Ok(())
 }
