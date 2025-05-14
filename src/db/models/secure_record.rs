@@ -31,7 +31,7 @@ impl SecureRecord {
     }
 }
 
-impl<'stmt> From<&Row<'stmt>> for SecureRecord {
+impl From<&Row<'_>> for SecureRecord {
     fn from(row: &Row) -> Self {
         Self {
             id: row.get(0).unwrap(),
