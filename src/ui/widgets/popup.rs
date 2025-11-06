@@ -8,17 +8,12 @@ use tui::text::Text;
 use tui::widgets::{Block, BorderType, Borders, List, ListItem, ListState, Paragraph, Wrap};
 use tui::Frame;
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub enum Position {
     Top,
+    #[default]
     Center,
     Bottom,
-}
-
-impl Default for Position {
-    fn default() -> Self {
-        Self::Center
-    }
 }
 
 #[derive(Clone)]
