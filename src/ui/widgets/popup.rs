@@ -149,6 +149,7 @@ impl Popup {
         frame: &mut Frame<'_, B>,
         rect: Rect,
         input_text: &str,
+        cursor_pos: usize,
         show_cursor: bool,
     ) {
         let block = Block::default()
@@ -175,9 +176,9 @@ impl Popup {
         frame.render_widget(paragraph, area);
 
         if show_cursor {
-            // Set cursor position at the end of the input text
+            // Set cursor position based on cursor_pos parameter
             let input_line_y = area.y + 1;
-            let cursor_x = area.x + input_text.len() as u16 + 1;
+            let cursor_x = area.x + cursor_pos.min(input_text.len()) as u16 + 1;
             frame.set_cursor(cursor_x, input_line_y);
         }
     }

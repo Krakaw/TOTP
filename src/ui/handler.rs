@@ -27,7 +27,14 @@ pub fn handle_key_events<B: Backend>(
             // If edit modal handled the key, don't process global handlers
             if matches!(
                 code,
-                KeyCode::Enter | KeyCode::Esc | KeyCode::Backspace | KeyCode::Char(_)
+                KeyCode::Enter
+                    | KeyCode::Esc
+                    | KeyCode::Backspace
+                    | KeyCode::Char(_)
+                    | KeyCode::Left
+                    | KeyCode::Right
+                    | KeyCode::Home
+                    | KeyCode::End
             ) {
                 return Ok(());
             }
@@ -117,6 +124,7 @@ pub fn handle_normal_mode(key_event: KeyEvent, app: &mut App) {
                                 app.state.editing_record_id = Some(*record_id);
                                 app.state.edit_field_type = Some(EditFieldType::AccountName);
                                 app.state.edit_input = record.account.clone().unwrap_or_default();
+                                app.state.edit_cursor_pos = app.state.edit_input.len();
                                 app.state.input_mode = InputMode::EditModal;
                             }
                         }
@@ -147,6 +155,7 @@ pub fn handle_normal_mode(key_event: KeyEvent, app: &mut App) {
                                 app.state.editing_record_id = Some(*record_id);
                                 app.state.edit_field_type = Some(field_type);
                                 app.state.edit_input = current_value;
+                                app.state.edit_cursor_pos = app.state.edit_input.len();
                                 app.state.input_mode = InputMode::EditModal;
                             }
                         }
@@ -219,7 +228,8 @@ pub fn handle_input_mode(key_event: KeyEvent, app: &mut App) {
 
 pub fn handle_paste(text: String, app: &mut App) -> Result<(), TotpError> {
     if app.state.input_mode == InputMode::EditModal {
-        app.state.edit_input.push_str(&text);
+        app.state.edit_input.insert_str(app.state.edit_cursor_pos, &text);
+        app.state.edit_cursor_pos += text.len();
     }
     Ok(())
 }
@@ -228,14 +238,35 @@ pub fn handle_edit_modal(key_event: KeyEvent, app: &mut App) -> Result<(), TotpE
     let code = key_event.code;
     let modifiers = key_event.modifiers;
     match (code, modifiers) {
+        (KeyCode::Left, _) => {
+            if app.state.edit_cursor_pos > 0 {
+                app.state.edit_cursor_pos -= 1;
+            }
+        }
+        (KeyCode::Right, _) => {
+            if app.state.edit_cursor_pos < app.state.edit_input.len() {
+                app.state.edit_cursor_pos += 1;
+            }
+        }
+        (KeyCode::Home, _) => {
+            app.state.edit_cursor_pos = 0;
+        }
+        (KeyCode::End, _) => {
+            app.state.edit_cursor_pos = app.state.edit_input.len();
+        }
         (KeyCode::Backspace, KeyModifiers::NONE) => {
-            app.state.edit_input.pop();
+            if app.state.edit_cursor_pos > 0 {
+                app.state.edit_input.remove(app.state.edit_cursor_pos - 1);
+                app.state.edit_cursor_pos -= 1;
+            }
         }
         (KeyCode::Char(c), KeyModifiers::NONE) => {
-            app.state.edit_input.push(c);
+            app.state.edit_input.insert(app.state.edit_cursor_pos, c);
+            app.state.edit_cursor_pos += 1;
         }
         (KeyCode::Char(c), KeyModifiers::SHIFT) => {
-            app.state.edit_input.push(c);
+            app.state.edit_input.insert(app.state.edit_cursor_pos, c);
+            app.state.edit_cursor_pos += 1;
         }
         (KeyCode::Enter, _) => {
             // Save changes
@@ -266,6 +297,7 @@ pub fn handle_edit_modal(key_event: KeyEvent, app: &mut App) -> Result<(), TotpE
             // Reset edit state
             app.state.input_mode = InputMode::Normal;
             app.state.edit_input.clear();
+            app.state.edit_cursor_pos = 0;
             app.state.edit_field_type = None;
             app.state.editing_record_id = None;
         }
@@ -273,6 +305,7 @@ pub fn handle_edit_modal(key_event: KeyEvent, app: &mut App) -> Result<(), TotpE
             // Cancel editing
             app.state.input_mode = InputMode::Normal;
             app.state.edit_input.clear();
+            app.state.edit_cursor_pos = 0;
             app.state.edit_field_type = None;
             app.state.editing_record_id = None;
         }
