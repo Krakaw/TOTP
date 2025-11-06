@@ -16,6 +16,7 @@ pub enum InputMode {
     EditDetail,
     EditModal,
     DeleteConfirmation,
+    Help,
 }
 
 #[derive(PartialEq, Eq, Default)]

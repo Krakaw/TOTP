@@ -55,6 +55,7 @@ pub fn handle_key_events<B: Backend>(
         InputMode::EditDetail => handle_edit_details(key_event, app),
         InputMode::EditModal => handle_edit_modal(key_event, app)?,
         InputMode::DeleteConfirmation => handle_delete_confirmation(key_event, app)?,
+        InputMode::Help => handle_help(key_event, app),
     }
 
     Ok(())
@@ -117,6 +118,18 @@ pub fn handle_normal_mode(key_event: KeyEvent, app: &mut App) {
             }
         }
         (KeyCode::Char('q'), _) => app.state.running = false,
+        (KeyCode::Char('?'), _) => {
+            app.state.input_mode = InputMode::Help;
+            app.state.show_popup = Some(Popup {
+                title: "Help - Key Bindings".to_string(),
+                message: Some(create_help_text()),
+                style: Some(Style::default().fg(Color::Cyan)),
+                show_background: Some(true),
+                show_until: None,
+                size: Some(super::widgets::popup::Size { x: 70, y: 25 }),
+                position: Some(super::widgets::popup::Position::Center),
+            });
+        }
         _ => {}
     }
 }
@@ -210,6 +223,21 @@ pub fn handle_edit_modal(key_event: KeyEvent, app: &mut App) -> Result<(), TotpE
         _ => {}
     }
     Ok(())
+}
+
+fn create_help_text() -> String {
+    "Global Key Bindings:\n\n  /          Switch to search/filter mode\n  Esc        Return to normal mode\n  Tab        Toggle between OTP table and detail view\n  Up/Down    Navigate through accounts\n  Home/End   Jump to first/last account\n  Enter      Copy OTP or selected detail to clipboard\n  Ctrl-C     Exit application\n\nNormal Mode:\n\n  e          Edit account name (OTP table) or detail field (detail view)\n  d          Delete selected account\n  q          Quit application\n  ?          Show this help\n\nPress Esc or ? to close".to_string()
+}
+
+pub fn handle_help(key_event: KeyEvent, app: &mut App) {
+    let code = key_event.code;
+    match code {
+        KeyCode::Esc | KeyCode::Char('?') => {
+            app.state.input_mode = InputMode::Normal;
+            app.state.show_popup = None;
+        }
+        _ => {}
+    }
 }
 
 pub fn handle_delete_confirmation(key_event: KeyEvent, app: &mut App) -> Result<(), TotpError> {
