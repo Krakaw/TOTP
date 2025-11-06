@@ -15,15 +15,36 @@ pub fn handle_key_events<B: Backend>(
     let code = key_event.code;
     let modifiers = key_event.modifiers;
 
+    // Handle mode-specific keys first, before global handlers
+    match app.state.input_mode {
+        InputMode::Help => {
+            handle_help(key_event, app);
+            // Help mode handles all keys, don't process global handlers
+            return Ok(());
+        }
+        InputMode::EditModal => {
+            handle_edit_modal(key_event, app)?;
+            // If edit modal handled the key, don't process global handlers
+            if matches!(code, KeyCode::Enter | KeyCode::Esc | KeyCode::Backspace | KeyCode::Char(_)) {
+                return Ok(());
+            }
+        }
+        InputMode::DeleteConfirmation => {
+            handle_delete_confirmation(key_event, app)?;
+            return Ok(());
+        }
+        _ => {}
+    }
+
     match (code, modifiers) {
         (KeyCode::Char('c'), KeyModifiers::CONTROL) => app.state.running = false,
         (KeyCode::Down, _) => {
-            if app.state.input_mode != InputMode::EditModal {
+            if app.state.input_mode != InputMode::EditModal && app.state.input_mode != InputMode::Help {
                 app.move_down();
             }
         }
         (KeyCode::Up, _) => {
-            if app.state.input_mode != InputMode::EditModal {
+            if app.state.input_mode != InputMode::EditModal && app.state.input_mode != InputMode::Help {
                 app.move_up();
             }
         }
@@ -33,29 +54,28 @@ pub fn handle_key_events<B: Backend>(
             }
         }
         (KeyCode::Tab, _) => {
-            if app.state.input_mode != InputMode::EditModal {
+            if app.state.input_mode != InputMode::EditModal && app.state.input_mode != InputMode::Help {
                 app.toggle_list_detail_mode();
             }
         }
-        (KeyCode::End, _) => {
-            if app.state.input_mode != InputMode::EditModal {
-                app.move_to_end();
+        (KeyCode::Home, _) => {
+            if app.state.input_mode != InputMode::EditModal && app.state.input_mode != InputMode::Help {
+                app.move_to_start();
             }
         }
-        (KeyCode::Home, _) => {
-            if app.state.input_mode != InputMode::EditModal {
-                app.move_to_start();
+        (KeyCode::End, _) => {
+            if app.state.input_mode != InputMode::EditModal && app.state.input_mode != InputMode::Help {
+                app.move_to_end();
             }
         }
         _ => {}
     };
+    
     match app.state.input_mode {
         InputMode::Normal => handle_normal_mode(key_event, app),
         InputMode::FilterList => handle_input_mode(key_event, app),
         InputMode::EditDetail => handle_edit_details(key_event, app),
-        InputMode::EditModal => handle_edit_modal(key_event, app)?,
-        InputMode::DeleteConfirmation => handle_delete_confirmation(key_event, app)?,
-        InputMode::Help => handle_help(key_event, app),
+        _ => {}
     }
 
     Ok(())
@@ -120,13 +140,14 @@ pub fn handle_normal_mode(key_event: KeyEvent, app: &mut App) {
         (KeyCode::Char('q'), _) => app.state.running = false,
         (KeyCode::Char('?'), _) => {
             app.state.input_mode = InputMode::Help;
+            app.help_state.select(Some(0));
             app.state.show_popup = Some(Popup {
                 title: "Help - Key Bindings".to_string(),
                 message: Some(create_help_text()),
                 style: Some(Style::default().fg(Color::Cyan)),
                 show_background: Some(true),
                 show_until: None,
-                size: Some(super::widgets::popup::Size { x: 70, y: 25 }),
+                size: Some(super::widgets::popup::Size { x: 80, y: 35 }),
                 position: Some(super::widgets::popup::Position::Center),
             });
         }
@@ -226,7 +247,7 @@ pub fn handle_edit_modal(key_event: KeyEvent, app: &mut App) -> Result<(), TotpE
 }
 
 fn create_help_text() -> String {
-    "Global Key Bindings:\n\n  /          Switch to search/filter mode\n  Esc        Return to normal mode\n  Tab        Toggle between OTP table and detail view\n  Up/Down    Navigate through accounts\n  Home/End   Jump to first/last account\n  Enter      Copy OTP or selected detail to clipboard\n  Ctrl-C     Exit application\n\nNormal Mode:\n\n  e          Edit account name (OTP table) or detail field (detail view)\n  d          Delete selected account\n  q          Quit application\n  ?          Show this help\n\nPress Esc or ? to close".to_string()
+    "Global Key Bindings:\n  /              Switch to search/filter mode\n  Esc            Return to normal mode\n  Tab            Toggle between OTP table and detail view\n  Up/Down        Navigate through accounts\n  Home/End       Jump to first/last account\n  Enter          Copy OTP or selected detail to clipboard\n  Ctrl-C         Exit application\n\nNormal Mode:\n  e              Edit account name (OTP table) or detail field (detail view)\n  d              Delete selected account\n  q              Quit application\n  ?              Show this help\n\nEdit Modal:\n  Enter          Save changes\n  Esc            Cancel editing\n  Backspace      Delete character\n  Shift          Capital letters\n  Ctrl-V         Paste text\n\nHelp Mode:\n  Esc or ?       Close help\n  Up/Down        Scroll help text\n  Home/End       Jump to top/bottom".to_string()
 }
 
 pub fn handle_help(key_event: KeyEvent, app: &mut App) {
@@ -235,6 +256,30 @@ pub fn handle_help(key_event: KeyEvent, app: &mut App) {
         KeyCode::Esc | KeyCode::Char('?') => {
             app.state.input_mode = InputMode::Normal;
             app.state.show_popup = None;
+            app.help_state.select(None);
+        }
+        KeyCode::Down => {
+            let selected = app.help_state.selected().unwrap_or(0);
+            let help_lines = create_help_text().lines().count();
+            if selected < help_lines.saturating_sub(1) {
+                app.help_state.select(Some(selected + 1));
+            }
+        }
+        KeyCode::Up => {
+            let selected = app.help_state.selected().unwrap_or(0);
+            if selected > 0 {
+                app.help_state.select(Some(selected - 1));
+            } else {
+                let help_lines = create_help_text().lines().count();
+                app.help_state.select(Some(help_lines.saturating_sub(1)));
+            }
+        }
+        KeyCode::Home => {
+            app.help_state.select(Some(0));
+        }
+        KeyCode::End => {
+            let help_lines = create_help_text().lines().count();
+            app.help_state.select(Some(help_lines.saturating_sub(1)));
         }
         _ => {}
     }

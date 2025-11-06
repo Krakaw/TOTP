@@ -4,7 +4,8 @@ use chrono::NaiveDateTime;
 use tui::backend::Backend;
 use tui::layout::{Alignment, Constraint, Direction, Layout, Rect};
 use tui::style::Style;
-use tui::widgets::{Block, BorderType, Borders, Paragraph, Wrap};
+use tui::text::Text;
+use tui::widgets::{Block, BorderType, Borders, List, ListItem, ListState, Paragraph, Wrap};
 use tui::Frame;
 
 #[derive(Clone)]
@@ -184,5 +185,54 @@ impl Popup {
             let cursor_x = area.x + input_text.len() as u16 + 1;
             frame.set_cursor(cursor_x, input_line_y);
         }
+    }
+
+    pub fn render_help<B: Backend>(
+        &self,
+        frame: &mut Frame<'_, B>,
+        rect: Rect,
+        help_state: &mut ListState,
+    ) {
+        let block = Block::default()
+            .title(self.title.as_str())
+            .borders(Borders::ALL)
+            .border_type(BorderType::Thick);
+
+        let help_items = if let Some(message) = self.message.as_ref() {
+            message
+                .lines()
+                .map(|line| {
+                    if line.is_empty() {
+                        ListItem::new("")
+                    } else if line.starts_with("  ") {
+                        // Regular help line - format with proper spacing
+                        ListItem::new(Text::raw(line))
+                    } else {
+                        // Section header - make it bold
+                        ListItem::new(Text::styled(
+                            line,
+                            Style::default().add_modifier(tui::style::Modifier::BOLD),
+                        ))
+                    }
+                })
+                .collect::<Vec<_>>()
+        } else {
+            vec![]
+        };
+
+        let list = List::new(help_items)
+            .block(block)
+            .style(self.style.unwrap_or_default())
+            .highlight_style(
+                Style::default()
+                    .add_modifier(tui::style::Modifier::REVERSED)
+            );
+
+        let area = self.centered_rect(self.size.clone().unwrap_or_default(), rect);
+        if self.show_background.is_none() || self.show_background == Some(false) {
+            frame.render_widget(Clear, rect);
+        }
+        frame.render_widget(Clear, area);
+        frame.render_stateful_widget(list, area, help_state);
     }
 }

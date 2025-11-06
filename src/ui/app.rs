@@ -15,6 +15,8 @@ pub struct App {
     pub table_state: TableState,
     /// Detail View State
     pub detail_state: ListState,
+    /// Help View State
+    pub help_state: ListState,
 }
 impl App {
     pub fn new<T: StorageTrait + 'static>(storage: T) -> Result<Self, TotpError> {
@@ -22,6 +24,7 @@ impl App {
             state: State::new(storage)?,
             table_state: TableState::default(),
             detail_state: ListState::default(),
+            help_state: ListState::default(),
         })
     }
 
