@@ -79,11 +79,39 @@ Options:
 #### Global Key Bindings
 | Key Binding | Action                          |
 |-------------|---------------------------------|
-| `/`         | Switch to search mode           |
-| `Esc`       | Switch to normal mode           |
-| `Tab`       | Toggle password mode            |
+| `/`         | Switch to search/filter mode    |
+| `Esc`       | Return to normal mode           |
+| `Tab`       | Toggle between OTP table and detail view |
 | `Down`      | Select next account             |
 | `Up`        | Select previous account         |
-| `Enter`     | Copy OTP or Detail to clipboard |
+| `Home`      | Jump to first account            |
+| `End`       | Jump to last account             |
+| `Enter`     | Copy OTP or selected detail to clipboard |
 | `Ctrl-c`    | Exit                            |
+
+#### Normal Mode
+| Key Binding | Action                          |
+|-------------|---------------------------------|
+| `e`         | Edit account name (OTP table) or detail field (detail view) |
 | `d`         | Delete selected account         |
+| `q`         | Quit application                |
+| `?`         | Show help modal                 |
+
+#### Edit Modal
+When editing a field, a modal appears with the current value pre-populated:
+| Key Binding | Action                          |
+|-------------|---------------------------------|
+| `Enter`     | Save changes                    |
+| `Esc`       | Cancel editing                  |
+| `Backspace` | Delete character                |
+| `Shift`     | Capital letters                 |
+| `Ctrl-V`    | Paste text                      |
+
+#### Help Modal
+The help modal displays all available keyboard shortcuts:
+| Key Binding | Action                          |
+|-------------|---------------------------------|
+| `Esc` or `?` | Close help modal                |
+| `Up/Down`   | Scroll help text (page-based)   |
+| `Home/End`  | Jump to top/bottom of help       |
+| `PageUp/PageDown` | Scroll by page                |
