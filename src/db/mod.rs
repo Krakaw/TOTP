@@ -64,7 +64,7 @@ impl<'a> From<Transaction<'a>> for Connection<'a> {
 
 impl<'a> Connection<'a> {
     #[inline]
-    pub fn prepare(&self, query: &str) -> Result<Statement, TotpError> {
+    pub fn prepare(&self, query: &str) -> Result<Statement<'_>, TotpError> {
         match self {
             Connection::Pooled(client) => Ok(client.prepare(query)?),
             Connection::Transaction(transaction) => Ok(transaction.prepare(query)?),

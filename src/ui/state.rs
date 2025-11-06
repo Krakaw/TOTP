@@ -14,7 +14,9 @@ pub enum InputMode {
     Normal,
     FilterList,
     EditDetail,
+    EditModal,
     DeleteConfirmation,
+    Help,
 }
 
 #[derive(PartialEq, Eq, Default)]
@@ -31,12 +33,23 @@ pub enum DetailInputType {
     Note,
 }
 
+#[derive(PartialEq, Eq, Clone)]
+pub enum EditFieldType {
+    AccountName,
+    Password,
+    Username,
+    Note,
+}
+
 pub struct State {
     pub input_mode: InputMode,
     pub active_pane: ActivePane,
     pub detail_input_type: DetailInputType,
     pub detail_input: String,
     pub filter_input: String,
+    pub edit_input: String,
+    pub edit_field_type: Option<EditFieldType>,
+    pub editing_record_id: Option<RecordId>,
     pub items: Vec<(AccountName, Option<Generator>, RecordId)>,
     pub records: Vec<Record>,
     pub display_otps: Vec<(TotpAccountName, TotpCode, ExpirySeconds, RecordId)>,
@@ -53,6 +66,9 @@ impl Default for State {
             detail_input_type: DetailInputType::Password,
             detail_input: String::new(),
             filter_input: String::new(),
+            edit_input: String::new(),
+            edit_field_type: None,
+            editing_record_id: None,
             items: vec![],
             records: vec![],
             display_otps: vec![],

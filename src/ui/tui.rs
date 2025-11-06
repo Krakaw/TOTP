@@ -1,6 +1,7 @@
 use crate::ui::app::App;
 use crate::ui::event_handler::EventHandler;
-use crate::ui::widgets::{details_view, filter_input, otp_table};
+use crate::ui::state::{EditFieldType, InputMode};
+use crate::ui::widgets::{details_view, filter_input, otp_table, popup};
 use crate::TotpError;
 use crossterm::event::{DisableMouseCapture, EnableMouseCapture};
 use crossterm::terminal;
@@ -8,6 +9,7 @@ use crossterm::terminal::{disable_raw_mode, EnterAlternateScreen, LeaveAlternate
 use std::io;
 use tui::backend::Backend;
 use tui::layout::{Constraint, Direction, Layout};
+use tui::style::{Color, Style};
 use tui::{Frame, Terminal};
 
 pub struct Tui<B: Backend> {
@@ -64,7 +66,36 @@ fn render<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>) {
         .split(rects[1]);
     otp_table::render(app, frame, body_rects[0]);
     details_view::render(app, frame, body_rects[1]);
-    if let Some(popup) = app.state.show_popup.as_ref() {
+
+    // Render edit modal if in EditModal mode
+    if app.state.input_mode == InputMode::EditModal {
+        let field_title = match app.state.edit_field_type.as_ref() {
+            Some(EditFieldType::AccountName) => "Edit Account Name",
+            Some(EditFieldType::Password) => "Edit Password",
+            Some(EditFieldType::Username) => "Edit Username",
+            Some(EditFieldType::Note) => "Edit Note",
+            None => "Edit",
+        };
+
+        let edit_popup = popup::Popup::new(
+            field_title.to_string(),
+            Some("Enter to save, Esc to cancel".to_string()),
+            None,
+            Some(true),
+            Some(Style::default().fg(Color::Yellow)),
+            Some(popup::Size { x: 60, y: 8 }),
+            Some(popup::Position::Center),
+        );
+
+        let rect = frame.size();
+        edit_popup.render_text_input(frame, rect, &app.state.edit_input, true);
+    } else if app.state.input_mode == InputMode::Help {
+        // Render help modal with scrollable list
+        if let Some(popup) = app.state.show_popup.as_ref() {
+            let rect = frame.size();
+            popup.render_help(frame, rect, &mut app.help_state);
+        }
+    } else if let Some(popup) = app.state.show_popup.as_ref() {
         let rect = frame.size();
         popup.render(frame, rect);
     }

@@ -55,7 +55,7 @@ pub fn render<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>, rect: Rect) {
     frame.render_stateful_widget(list.block(block), rect, &mut app.detail_state);
 }
 
-fn list_item(title: &str, value: Option<String>, frame_size: usize, hidden: bool) -> ListItem {
+fn list_item(title: &str, value: Option<String>, frame_size: usize, hidden: bool) -> ListItem<'_> {
     let mut title_text = Text::styled(
         format!("{}:\n", title),
         Style::default().add_modifier(Modifier::DIM),

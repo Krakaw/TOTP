@@ -6,7 +6,7 @@ use std::sync::mpsc;
 use std::thread;
 use std::time::{Duration, Instant};
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Debug)]
 pub enum Event {
     /// Key press.
     Key(KeyEvent),
@@ -16,6 +16,8 @@ pub enum Event {
     /// Terminal resize.
     #[allow(dead_code)]
     Resize(u16, u16),
+    /// Paste event.
+    Paste(String),
     /// Terminal tick.
     Tick,
 }
@@ -54,9 +56,8 @@ impl EventHandler {
                             CrosstermEvent::Key(e) => sender.send(Event::Key(e)),
                             CrosstermEvent::Mouse(e) => sender.send(Event::Mouse(e)),
                             CrosstermEvent::Resize(w, h) => sender.send(Event::Resize(w, h)),
-                            CrosstermEvent::FocusGained
-                            | CrosstermEvent::FocusLost
-                            | CrosstermEvent::Paste(_) => Ok(()),
+                            CrosstermEvent::Paste(text) => sender.send(Event::Paste(text)),
+                            CrosstermEvent::FocusGained | CrosstermEvent::FocusLost => Ok(()),
                         }
                         .map_err(|_| UiEvent("Failed to send UI event".to_string()))
                         .expect("Failed to send UI event")
