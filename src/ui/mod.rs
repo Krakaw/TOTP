@@ -23,6 +23,7 @@ pub fn init<T: StorageTrait + 'static>(storage: T) -> Result<(), TotpError> {
         tui.draw(&mut app)?;
         match tui.events.next()? {
             Event::Key(key_event) => handler::handle_key_events(key_event, &mut tui, &mut app)?,
+            Event::Paste(text) => handler::handle_paste(text, &mut app)?,
             Event::Tick => app.tick(),
             _ => {}
         }

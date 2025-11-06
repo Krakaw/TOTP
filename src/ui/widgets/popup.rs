@@ -3,7 +3,7 @@ use crate::ui::widgets::clear::Clear;
 use chrono::NaiveDateTime;
 use tui::backend::Backend;
 use tui::layout::{Alignment, Constraint, Direction, Layout, Rect};
-use tui::style::{Color, Style};
+use tui::style::Style;
 use tui::widgets::{Block, BorderType, Borders, Paragraph, Wrap};
 use tui::Frame;
 

@@ -151,6 +151,13 @@ pub fn handle_input_mode(key_event: KeyEvent, app: &mut App) {
     }
 }
 
+pub fn handle_paste(text: String, app: &mut App) -> Result<(), TotpError> {
+    if app.state.input_mode == InputMode::EditModal {
+        app.state.edit_input.push_str(&text);
+    }
+    Ok(())
+}
+
 pub fn handle_edit_modal(key_event: KeyEvent, app: &mut App) -> Result<(), TotpError> {
     let code = key_event.code;
     let modifiers = key_event.modifiers;
@@ -159,6 +166,9 @@ pub fn handle_edit_modal(key_event: KeyEvent, app: &mut App) -> Result<(), TotpE
             app.state.edit_input.pop();
         }
         (KeyCode::Char(c), KeyModifiers::NONE) => {
+            app.state.edit_input.push(c);
+        }
+        (KeyCode::Char(c), KeyModifiers::SHIFT) => {
             app.state.edit_input.push(c);
         }
         (KeyCode::Enter, _) => {
