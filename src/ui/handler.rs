@@ -68,6 +68,12 @@ pub fn handle_key_events<B: Backend>(
                 app.move_to_end();
             }
         }
+        (KeyCode::PageDown, _) | (KeyCode::PageUp, _) => {
+            // Page up/down handled by mode-specific handlers
+            if app.state.input_mode == InputMode::Help {
+                // Already handled in handle_help
+            }
+        }
         _ => {}
     };
     
@@ -252,6 +258,11 @@ fn create_help_text() -> String {
 
 pub fn handle_help(key_event: KeyEvent, app: &mut App) {
     let code = key_event.code;
+    let help_lines = create_help_text().lines().count();
+    // Calculate page size: help modal is 35% height, estimate ~15-20 visible lines (minus borders)
+    // Use a reasonable page size that works for most terminals
+    let page_size = 15;
+    
     match code {
         KeyCode::Esc | KeyCode::Char('?') => {
             app.state.input_mode = InputMode::Normal;
@@ -260,25 +271,36 @@ pub fn handle_help(key_event: KeyEvent, app: &mut App) {
         }
         KeyCode::Down => {
             let selected = app.help_state.selected().unwrap_or(0);
-            let help_lines = create_help_text().lines().count();
-            if selected < help_lines.saturating_sub(1) {
-                app.help_state.select(Some(selected + 1));
-            }
+            // Scroll down by page size
+            let new_selected = (selected + page_size).min(help_lines.saturating_sub(1));
+            app.help_state.select(Some(new_selected));
         }
         KeyCode::Up => {
             let selected = app.help_state.selected().unwrap_or(0);
-            if selected > 0 {
-                app.help_state.select(Some(selected - 1));
+            // Scroll up by page size
+            if selected >= page_size {
+                app.help_state.select(Some(selected - page_size));
             } else {
-                let help_lines = create_help_text().lines().count();
-                app.help_state.select(Some(help_lines.saturating_sub(1)));
+                app.help_state.select(Some(0));
+            }
+        }
+        KeyCode::PageDown => {
+            let selected = app.help_state.selected().unwrap_or(0);
+            let new_selected = (selected + page_size).min(help_lines.saturating_sub(1));
+            app.help_state.select(Some(new_selected));
+        }
+        KeyCode::PageUp => {
+            let selected = app.help_state.selected().unwrap_or(0);
+            if selected >= page_size {
+                app.help_state.select(Some(selected - page_size));
+            } else {
+                app.help_state.select(Some(0));
             }
         }
         KeyCode::Home => {
             app.help_state.select(Some(0));
         }
         KeyCode::End => {
-            let help_lines = create_help_text().lines().count();
             app.help_state.select(Some(help_lines.saturating_sub(1)));
         }
         _ => {}
@@ -309,3 +331,4 @@ pub fn handle_delete_confirmation(key_event: KeyEvent, app: &mut App) -> Result<
     }
     Ok(())
 }
+

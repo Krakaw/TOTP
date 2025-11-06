@@ -222,11 +222,7 @@ impl Popup {
 
         let list = List::new(help_items)
             .block(block)
-            .style(self.style.unwrap_or_default())
-            .highlight_style(
-                Style::default()
-                    .add_modifier(tui::style::Modifier::REVERSED)
-            );
+            .style(self.style.unwrap_or_default());
 
         let area = self.centered_rect(self.size.clone().unwrap_or_default(), rect);
         if self.show_background.is_none() || self.show_background == Some(false) {
