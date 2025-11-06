@@ -3,8 +3,8 @@ use crate::ui::widgets::clear::Clear;
 use chrono::NaiveDateTime;
 use tui::backend::Backend;
 use tui::layout::{Alignment, Constraint, Direction, Layout, Rect};
-use tui::style::Style;
-use tui::widgets::{Block, Borders, Paragraph, Wrap};
+use tui::style::{Color, Style};
+use tui::widgets::{Block, BorderType, Borders, Paragraph, Wrap};
 use tui::Frame;
 
 #[derive(Clone)]
@@ -146,5 +146,43 @@ impl Popup {
         }
         frame.render_widget(Clear, area); //this clears out the background
         frame.render_widget(paragraph, area);
+    }
+
+    pub fn render_text_input<B: Backend>(
+        &self,
+        frame: &mut Frame<'_, B>,
+        rect: Rect,
+        input_text: &str,
+        show_cursor: bool,
+    ) {
+        let block = Block::default()
+            .title(self.title.as_str())
+            .borders(Borders::ALL)
+            .border_type(BorderType::Thick);
+        
+        let instruction = if let Some(message) = self.message.as_ref() {
+            format!("{}\n\n{}", input_text, message)
+        } else {
+            format!("{}\n\nEnter to save, Esc to cancel", input_text)
+        };
+
+        let paragraph = Paragraph::new(instruction.as_str())
+            .block(block)
+            .style(self.style.unwrap_or_default())
+            .wrap(Wrap { trim: false });
+
+        let area = self.centered_rect(self.size.clone().unwrap_or_default(), rect);
+        if self.show_background.is_none() || self.show_background == Some(false) {
+            frame.render_widget(Clear, rect);
+        }
+        frame.render_widget(Clear, area);
+        frame.render_widget(paragraph, area);
+
+        if show_cursor {
+            // Set cursor position at the end of the input text
+            let input_line_y = area.y + 1;
+            let cursor_x = area.x + input_text.len() as u16 + 1;
+            frame.set_cursor(cursor_x, input_line_y);
+        }
     }
 }
