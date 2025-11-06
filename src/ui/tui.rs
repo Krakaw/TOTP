@@ -66,7 +66,7 @@ fn render<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>) {
         .split(rects[1]);
     otp_table::render(app, frame, body_rects[0]);
     details_view::render(app, frame, body_rects[1]);
-    
+
     // Render edit modal if in EditModal mode
     if app.state.input_mode == InputMode::EditModal {
         let field_title = match app.state.edit_field_type.as_ref() {
@@ -76,7 +76,7 @@ fn render<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>) {
             Some(EditFieldType::Note) => "Edit Note",
             None => "Edit",
         };
-        
+
         let edit_popup = popup::Popup::new(
             field_title.to_string(),
             Some("Enter to save, Esc to cancel".to_string()),
@@ -86,7 +86,7 @@ fn render<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>) {
             Some(popup::Size { x: 60, y: 8 }),
             Some(popup::Position::Center),
         );
-        
+
         let rect = frame.size();
         edit_popup.render_text_input(frame, rect, &app.state.edit_input, true);
     } else if app.state.input_mode == InputMode::Help {

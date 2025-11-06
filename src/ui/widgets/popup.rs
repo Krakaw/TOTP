@@ -160,7 +160,7 @@ impl Popup {
             .title(self.title.as_str())
             .borders(Borders::ALL)
             .border_type(BorderType::Thick);
-        
+
         let instruction = if let Some(message) = self.message.as_ref() {
             format!("{}\n\n{}", input_text, message)
         } else {

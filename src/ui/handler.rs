@@ -25,7 +25,10 @@ pub fn handle_key_events<B: Backend>(
         InputMode::EditModal => {
             handle_edit_modal(key_event, app)?;
             // If edit modal handled the key, don't process global handlers
-            if matches!(code, KeyCode::Enter | KeyCode::Esc | KeyCode::Backspace | KeyCode::Char(_)) {
+            if matches!(
+                code,
+                KeyCode::Enter | KeyCode::Esc | KeyCode::Backspace | KeyCode::Char(_)
+            ) {
                 return Ok(());
             }
         }
@@ -39,12 +42,16 @@ pub fn handle_key_events<B: Backend>(
     match (code, modifiers) {
         (KeyCode::Char('c'), KeyModifiers::CONTROL) => app.state.running = false,
         (KeyCode::Down, _) => {
-            if app.state.input_mode != InputMode::EditModal && app.state.input_mode != InputMode::Help {
+            if app.state.input_mode != InputMode::EditModal
+                && app.state.input_mode != InputMode::Help
+            {
                 app.move_down();
             }
         }
         (KeyCode::Up, _) => {
-            if app.state.input_mode != InputMode::EditModal && app.state.input_mode != InputMode::Help {
+            if app.state.input_mode != InputMode::EditModal
+                && app.state.input_mode != InputMode::Help
+            {
                 app.move_up();
             }
         }
@@ -54,17 +61,23 @@ pub fn handle_key_events<B: Backend>(
             }
         }
         (KeyCode::Tab, _) => {
-            if app.state.input_mode != InputMode::EditModal && app.state.input_mode != InputMode::Help {
+            if app.state.input_mode != InputMode::EditModal
+                && app.state.input_mode != InputMode::Help
+            {
                 app.toggle_list_detail_mode();
             }
         }
         (KeyCode::Home, _) => {
-            if app.state.input_mode != InputMode::EditModal && app.state.input_mode != InputMode::Help {
+            if app.state.input_mode != InputMode::EditModal
+                && app.state.input_mode != InputMode::Help
+            {
                 app.move_to_start();
             }
         }
         (KeyCode::End, _) => {
-            if app.state.input_mode != InputMode::EditModal && app.state.input_mode != InputMode::Help {
+            if app.state.input_mode != InputMode::EditModal
+                && app.state.input_mode != InputMode::Help
+            {
                 app.move_to_end();
             }
         }
@@ -76,7 +89,7 @@ pub fn handle_key_events<B: Backend>(
         }
         _ => {}
     };
-    
+
     match app.state.input_mode {
         InputMode::Normal => handle_normal_mode(key_event, app),
         InputMode::FilterList => handle_input_mode(key_event, app),
@@ -98,7 +111,9 @@ pub fn handle_normal_mode(key_event: KeyEvent, app: &mut App) {
                     // Edit account name
                     if let Some(selected) = app.table_state.selected() {
                         if let Some((_, _, _, record_id)) = app.state.display_otps.get(selected) {
-                            if let Some(record) = app.state.records.iter().find(|r| r.id == *record_id) {
+                            if let Some(record) =
+                                app.state.records.iter().find(|r| r.id == *record_id)
+                            {
                                 app.state.editing_record_id = Some(*record_id);
                                 app.state.edit_field_type = Some(EditFieldType::AccountName);
                                 app.state.edit_input = record.account.clone().unwrap_or_default();
@@ -111,12 +126,23 @@ pub fn handle_normal_mode(key_event: KeyEvent, app: &mut App) {
                     // Edit detail field based on selected index
                     if let Some(selected) = app.table_state.selected() {
                         if let Some((_, _, _, record_id)) = app.state.display_otps.get(selected) {
-                            if let Some(record) = app.state.records.iter().find(|r| r.id == *record_id) {
+                            if let Some(record) =
+                                app.state.records.iter().find(|r| r.id == *record_id)
+                            {
                                 let detail_selected = app.detail_state.selected().unwrap_or(0);
                                 let (field_type, current_value) = match detail_selected {
-                                    1 => (EditFieldType::Username, record.user.clone().unwrap_or_default()),
-                                    2 => (EditFieldType::Note, record.note.clone().unwrap_or_default()),
-                                    _ => (EditFieldType::Password, record.password.clone().unwrap_or_default()),
+                                    1 => (
+                                        EditFieldType::Username,
+                                        record.user.clone().unwrap_or_default(),
+                                    ),
+                                    2 => (
+                                        EditFieldType::Note,
+                                        record.note.clone().unwrap_or_default(),
+                                    ),
+                                    _ => (
+                                        EditFieldType::Password,
+                                        record.password.clone().unwrap_or_default(),
+                                    ),
                                 };
                                 app.state.editing_record_id = Some(*record_id);
                                 app.state.edit_field_type = Some(field_type);
@@ -213,7 +239,10 @@ pub fn handle_edit_modal(key_event: KeyEvent, app: &mut App) -> Result<(), TotpE
         }
         (KeyCode::Enter, _) => {
             // Save changes
-            if let (Some(record_id), Some(field_type)) = (app.state.editing_record_id, app.state.edit_field_type.as_ref()) {
+            if let (Some(record_id), Some(field_type)) = (
+                app.state.editing_record_id,
+                app.state.edit_field_type.as_ref(),
+            ) {
                 if let Some(storage) = app.state.storage.as_mut() {
                     let mut record = storage.get_account(record_id)?;
                     match field_type {
@@ -262,7 +291,7 @@ pub fn handle_help(key_event: KeyEvent, app: &mut App) {
     // Calculate page size: help modal is 35% height, estimate ~15-20 visible lines (minus borders)
     // Use a reasonable page size that works for most terminals
     let page_size = 15;
-    
+
     match code {
         KeyCode::Esc | KeyCode::Char('?') => {
             app.state.input_mode = InputMode::Normal;
@@ -331,4 +360,3 @@ pub fn handle_delete_confirmation(key_event: KeyEvent, app: &mut App) -> Result<
     }
     Ok(())
 }
-
