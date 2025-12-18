@@ -41,6 +41,46 @@ else
     exit 1
 fi
 
+# Create wrapper hooks for all global hooks (except pre-commit which we handle specially)
+GLOBAL_HOOKS_PATH=$(git config --global --get core.hooksPath 2>/dev/null || echo "")
+
+if [ -n "$GLOBAL_HOOKS_PATH" ] && [ -d "$GLOBAL_HOOKS_PATH" ]; then
+    echo "Checking for global hooks in: $GLOBAL_HOOKS_PATH"
+    
+    # Find all executable hook files in the global hooksPath
+    for global_hook in "$GLOBAL_HOOKS_PATH"/*; do
+        if [ -f "$global_hook" ] && [ -x "$global_hook" ]; then
+            hook_name=$(basename "$global_hook")
+            
+            # Skip backup files and pre-commit (we handle pre-commit specially)
+            if [[ "$hook_name" == *.bak ]] || [[ "$hook_name" == "pre-commit" ]]; then
+                continue
+            fi
+            
+            local_hook="$SCRIPT_DIR/$hook_name"
+            
+            # Create a wrapper that runs the global hook
+            if [ ! -f "$local_hook" ] || [ ! -x "$local_hook" ]; then
+                cat > "$local_hook" << EOF
+#!/bin/bash
+# Auto-generated wrapper to run global hook: $hook_name
+
+# Get the project root
+SCRIPT_DIR="\$(cd "\$(dirname "\${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="\$(cd "\$SCRIPT_DIR/.." && pwd)"
+
+# Run the global hook in the project root directory
+(cd "\$PROJECT_ROOT" && "$global_hook") || exit 1
+EOF
+                chmod +x "$local_hook"
+                echo "Created wrapper for global hook: $hook_name"
+            else
+                echo "Hook already exists (skipping): $hook_name"
+            fi
+        fi
+    done
+fi
+
 # Check if there's an existing pre-commit hook in the old .git/hooks location
 # (for backward compatibility, but it won't be used if hooksPath is set)
 if [ -f "$PRE_COMMIT_HOOK" ] && [ ! -L "$PRE_COMMIT_HOOK" ]; then
@@ -53,4 +93,5 @@ fi
 
 echo "Pre-commit hook installation complete!"
 echo "The hook will run cargo fmt/clippy, then any global hooks."
+echo "Other global hooks have been wrapped and will run automatically."
 
