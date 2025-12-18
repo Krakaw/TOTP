@@ -88,7 +88,13 @@ fn render<B: Backend>(app: &mut App, frame: &mut Frame<'_, B>) {
         );
 
         let rect = frame.size();
-        edit_popup.render_text_input(frame, rect, &app.state.edit_input, app.state.edit_cursor_pos, true);
+        edit_popup.render_text_input(
+            frame,
+            rect,
+            &app.state.edit_input,
+            app.state.edit_cursor_pos,
+            true,
+        );
     } else if app.state.input_mode == InputMode::Help {
         // Render help modal with scrollable list
         if let Some(popup) = app.state.show_popup.as_ref() {

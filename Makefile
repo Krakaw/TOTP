@@ -7,3 +7,6 @@ wasm-node:
 all:
 	make wasm-web
 	make wasm-node
+
+install-pre-commit:
+	@./scripts/install-pre-commit-hook.sh

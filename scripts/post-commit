@@ -1,0 +1,9 @@
+#!/bin/bash
+# Auto-generated wrapper to run global hook: post-commit
+
+# Get the project root
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+# Run the global hook in the project root directory
+(cd "$PROJECT_ROOT" && "/Users/keith/.git_template/hooks/post-commit") || exit 1

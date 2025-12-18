@@ -10,6 +10,8 @@ pub enum TotpError {
     #[allow(dead_code)]
     AccountNotFound(String),
     #[allow(dead_code)]
+    ValidationError(String),
+    #[allow(dead_code)]
     Base32Decode(String),
     #[allow(dead_code)]
     Clap(String),
@@ -24,6 +26,7 @@ pub enum TotpError {
     MissingLockKey,
     #[allow(dead_code)]
     Utf8(String),
+    #[allow(dead_code)]
     InvalidOtpForRange,
     #[allow(dead_code)]
     Ui(String),

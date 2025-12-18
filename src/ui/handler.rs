@@ -228,7 +228,9 @@ pub fn handle_input_mode(key_event: KeyEvent, app: &mut App) {
 
 pub fn handle_paste(text: String, app: &mut App) -> Result<(), TotpError> {
     if app.state.input_mode == InputMode::EditModal {
-        app.state.edit_input.insert_str(app.state.edit_cursor_pos, &text);
+        app.state
+            .edit_input
+            .insert_str(app.state.edit_cursor_pos, &text);
         app.state.edit_cursor_pos += text.len();
     }
     Ok(())

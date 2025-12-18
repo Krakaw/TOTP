@@ -72,6 +72,85 @@ Options:
     curl localhost:8080/acc
     {"account_name":"Account 1","code":"783196","expiry":30}
 
+### MCP Server (Model Context Protocol)
+
+This repo also ships an MCP server binary: `trotp-mcp` (stdio transport). It exposes tools to **add**, **edit**, **delete**, and **generate** TOTPs using the same encrypted sqlite store as the CLI.
+
+#### Run
+
+```bash
+# From source
+cargo run --bin trotp-mcp
+
+# Or if installed via cargo (installs all package binaries)
+trotp-mcp
+```
+
+#### Configure an MCP client
+
+Add an MCP server that runs `trotp-mcp` over stdio. Example config (Claude Desktop style):
+
+```json
+{
+  "mcpServers": {
+    "trotp": {
+      "command": "trotp-mcp",
+      "args": []
+    }
+  }
+}
+```
+
+#### Available tools
+
+- `trotp_add`: add a record
+- `trotp_edit`: edit a record by `id`
+- `trotp_delete`: delete a record by `id`
+- `trotp_generate`: generate a TOTP from a stored record (`id` or `account`) or from a one-off `secret`
+
+#### Examples
+
+Generate a one-off code from a secret (no DB needed):
+
+```json
+{
+  "name": "trotp_generate",
+  "arguments": {
+    "secret": "JBSWY3DPEHPK3PXP"
+  }
+}
+```
+
+Generate from a stored account (requires DB password):
+
+```json
+{
+  "name": "trotp_generate",
+  "arguments": {
+    "db_password": "password",
+    "sqlite_path": ".totp.sqlite3",
+    "account": "acc"
+  }
+}
+```
+
+Add a new account:
+
+```json
+{
+  "name": "trotp_add",
+  "arguments": {
+    "db_password": "password",
+    "sqlite_path": ".totp.sqlite3",
+    "account": "Example",
+    "secret": "JBSWY3DPEHPK3PXP",
+    "digits": 6,
+    "step": 30,
+    "skew": 1
+  }
+}
+```
+
 ## Key Bindings
 
 ### User Interface
