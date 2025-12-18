@@ -1,0 +1,47 @@
+#!/bin/bash
+
+set -e
+
+# Get the directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+# Change to project root
+cd "$PROJECT_ROOT"
+
+# Run cargo fmt
+echo "Running cargo fmt..."
+cargo fmt
+
+# Run cargo clippy with warnings as errors
+echo "Running cargo clippy..."
+cargo clippy -- -D warnings
+
+# Check for global git pre-commit hook and run it AFTER our checks
+# First, check if git config has a global hooksPath set
+GLOBAL_HOOKS_PATH=$(git config --global --get core.hooksPath 2>/dev/null || true)
+
+if [ -n "$GLOBAL_HOOKS_PATH" ]; then
+    GLOBAL_PRE_COMMIT="$GLOBAL_HOOKS_PATH/pre-commit"
+    if [ -f "$GLOBAL_PRE_COMMIT" ] && [ -x "$GLOBAL_PRE_COMMIT" ]; then
+        echo "Running global pre-commit hook: $GLOBAL_PRE_COMMIT"
+        "$GLOBAL_PRE_COMMIT" || exit 1
+    fi
+fi
+
+# Also check standard global hook locations
+GLOBAL_HOOK_LOCATIONS=(
+    "$HOME/.git-templates/hooks/pre-commit"
+    "/etc/git-core/templates/hooks/pre-commit"
+    "/usr/share/git-core/templates/hooks/pre-commit"
+)
+
+for global_hook in "${GLOBAL_HOOK_LOCATIONS[@]}"; do
+    if [ -f "$global_hook" ] && [ -x "$global_hook" ]; then
+        echo "Running global pre-commit hook: $global_hook"
+        "$global_hook" || exit 1
+    fi
+done
+
+echo "Pre-commit checks passed!"
+
