@@ -16,15 +16,6 @@ mod db;
 mod errors;
 mod otp;
 
-// These `use` statements intentionally create crate-root aliases relied on by submodules
-// (many modules refer to `crate::TotpError`, `crate::Token`, `crate::Record`, etc.).
-use crate::errors::TotpError as _TotpErrorAlias;
-use crate::otp::token::Token as _TokenAlias;
-use crate::db::models::record::Record as _RecordAlias;
-use crate::db::Db as _DbAlias;
-use crate::db::encryption::Encryption as _EncryptionAlias;
-use crate::otp::generator::Generator as _GeneratorAlias;
-
 #[derive(Debug)]
 struct RpcMessage {
     json: Value,
@@ -325,8 +316,7 @@ fn tool_edit(args: &Value) -> Result<Value, TotpError> {
 
     let mut token = record.token.clone();
     if let Some(secret) = secret {
-        let mut t: Token = secret.parse()?;
-        token = Some(t);
+        token = Some(secret.parse()?);
     }
     if let Some(ref mut t) = token {
         if let Some(d) = digits {
@@ -400,7 +390,7 @@ fn tool_generate(args: &Value) -> Result<Value, TotpError> {
     let sqlite_path = arg_str(args, "sqlite_path");
     let auto_lock_key = arg_bool(args, "auto_lock_key").unwrap_or(true);
 
-    let mut storage = open_storage(db_password, sqlite_path, auto_lock_key)?;
+    let storage = open_storage(db_password, sqlite_path, auto_lock_key)?;
 
     let record = if let Some(id) = args.get("id").and_then(|v| v.as_u64()) {
         storage.get_account(u32::try_from(id).map_err(|_| TotpError::Storage("invalid id".to_string()))?)?
