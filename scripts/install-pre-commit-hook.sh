@@ -15,64 +15,42 @@ if [ ! -d "$PROJECT_ROOT/.git" ]; then
     exit 1
 fi
 
-# Create .git/hooks directory if it doesn't exist
+# Check if a global or local hooksPath is set
+CURRENT_HOOKS_PATH=$(git config --get core.hooksPath 2>/dev/null || echo "")
+LOCAL_HOOKS_PATH=$(git config --local --get core.hooksPath 2>/dev/null || echo "")
+
+# Set local hooksPath to point to scripts directory to override global setting
+# This ensures our hooks are found even if a global hooksPath is configured
+if [ "$LOCAL_HOOKS_PATH" != "$SCRIPT_DIR" ]; then
+    git config --local core.hooksPath "$SCRIPT_DIR"
+    if [ -n "$CURRENT_HOOKS_PATH" ] && [ "$CURRENT_HOOKS_PATH" != "$SCRIPT_DIR" ]; then
+        echo "Note: Global hooksPath ($CURRENT_HOOKS_PATH) is overridden by local setting ($SCRIPT_DIR)"
+    fi
+    echo "Set local hooksPath to: $SCRIPT_DIR"
+fi
+
+# Create .git/hooks directory if it doesn't exist (for backward compatibility)
 mkdir -p "$GIT_HOOKS_DIR"
 
-# Check if there's an existing pre-commit hook
-if [ -f "$PRE_COMMIT_HOOK" ] && [ ! -L "$PRE_COMMIT_HOOK" ]; then
-    # It's a regular file (not a symlink), backup existing hook
-    BACKUP="$PRE_COMMIT_HOOK.backup.$(date +%Y%m%d_%H%M%S)"
-    echo "Backing up existing pre-commit hook to: $BACKUP"
-    cp "$PRE_COMMIT_HOOK" "$BACKUP"
-    
-    # Create a wrapper that runs our hook, then the original
-    cat > "$PRE_COMMIT_HOOK" << 'WRAPPER_EOF'
-#!/bin/bash
-# Auto-generated wrapper hook that chains to existing hooks
-
-# Run the project's pre-commit hook
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-HOOK_SCRIPT="$PROJECT_ROOT/scripts/pre-commit"
-
-if [ -f "$HOOK_SCRIPT" ]; then
-    "$HOOK_SCRIPT" || exit 1
-fi
-
-# Run the original hook (if it exists and is different)
-# Find the most recent backup
-LATEST_BACKUP=$(ls -t "$SCRIPT_DIR/pre-commit.backup."* 2>/dev/null | head -n1)
-if [ -n "$LATEST_BACKUP" ] && [ -f "$LATEST_BACKUP" ] && [ -x "$LATEST_BACKUP" ]; then
-    "$LATEST_BACKUP" || exit 1
-fi
-
-exit 0
-WRAPPER_EOF
-    chmod +x "$PRE_COMMIT_HOOK"
-    echo "Installed pre-commit hook (preserving existing hook as backup)."
-    echo "The hook will run cargo fmt/clippy first, then your original hook."
-elif [ -L "$PRE_COMMIT_HOOK" ]; then
-    # It's already a symlink, check if it points to our script
-    CURRENT_TARGET=$(readlink "$PRE_COMMIT_HOOK")
-    
-    # Resolve both to absolute paths for comparison
-    ABSOLUTE_TARGET=$(cd "$GIT_HOOKS_DIR" && readlink -f "$PRE_COMMIT_HOOK" 2>/dev/null || echo "")
-    ABSOLUTE_SCRIPT=$(readlink -f "$HOOK_SCRIPT" 2>/dev/null || echo "")
-    
-    if [ -n "$ABSOLUTE_TARGET" ] && [ -n "$ABSOLUTE_SCRIPT" ] && [ "$ABSOLUTE_TARGET" = "$ABSOLUTE_SCRIPT" ]; then
-        echo "Pre-commit hook is already installed (symlink)."
-        exit 0
-    else
-        echo "Warning: Pre-commit hook is a symlink pointing elsewhere."
-        echo "Removing old symlink and creating new one."
-        rm "$PRE_COMMIT_HOOK"
-        # Use absolute path for reliability
-        ln -s "$HOOK_SCRIPT" "$PRE_COMMIT_HOOK"
-        echo "Pre-commit hook installed successfully (symlink)."
-    fi
+# Check if pre-commit hook already exists in scripts directory
+if [ -f "$HOOK_SCRIPT" ] && [ -x "$HOOK_SCRIPT" ]; then
+    echo "Pre-commit hook is ready in: $HOOK_SCRIPT"
+    echo "Git will use this hook via hooksPath configuration."
 else
-    # No existing hook, create a symlink to our script
-    ln -s "$HOOK_SCRIPT" "$PRE_COMMIT_HOOK"
-    echo "Pre-commit hook installed successfully (symlink)."
+    echo "Error: Pre-commit hook script not found at: $HOOK_SCRIPT" >&2
+    exit 1
 fi
+
+# Check if there's an existing pre-commit hook in the old .git/hooks location
+# (for backward compatibility, but it won't be used if hooksPath is set)
+if [ -f "$PRE_COMMIT_HOOK" ] && [ ! -L "$PRE_COMMIT_HOOK" ]; then
+    echo "Warning: Found pre-commit hook in .git/hooks/ (old location)"
+    echo "This won't be used since hooksPath is set. Consider removing it."
+elif [ -L "$PRE_COMMIT_HOOK" ]; then
+    echo "Note: Found symlink in .git/hooks/ (old location)"
+    echo "This won't be used since hooksPath is set. You can remove it if desired."
+fi
+
+echo "Pre-commit hook installation complete!"
+echo "The hook will run cargo fmt/clippy, then any global hooks."
 
