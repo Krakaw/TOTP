@@ -504,6 +504,7 @@ fn main() -> Result<(), TotpError> {
     let mut stdout = std::io::stdout();
     let mut buf: Vec<u8> = Vec::new();
 
+
     while let Some(msg) = read_one_rpc(&mut stdin, &mut buf)? {
         let id = msg.json.get("id").cloned().unwrap_or(Value::Null);
         let method = msg
@@ -513,16 +514,22 @@ fn main() -> Result<(), TotpError> {
             .unwrap_or("");
         let params = msg.json.get("params").cloned().unwrap_or(Value::Null);
 
+
         // Notifications don't require replies (id is null/missing). We still handle exit gracefully.
         let needs_reply = !id.is_null();
 
         let reply = match method {
             "initialize" => {
                 let version = env!("CARGO_PKG_VERSION");
+                // Use client's protocol version if provided, otherwise default
+                let client_protocol = params
+                    .get("protocolVersion")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("2024-11-05");
                 jsonrpc_result(
                     id,
                     json!({
-                        "protocolVersion": "2024-11-05",
+                        "protocolVersion": client_protocol,
                         "serverInfo": { "name": "trotp-mcp", "version": version },
                         "capabilities": { "tools": {} }
                     }),
@@ -546,6 +553,11 @@ fn main() -> Result<(), TotpError> {
                     ),
                 }
             }
+            "notifications/initialized" => {
+                // Notification - no reply needed, just continue
+                json!({})
+            }
+            "ping" => jsonrpc_result(id, json!({})),
             "shutdown" => jsonrpc_result(id, json!({})),
             "exit" => {
                 // exit is typically a notification.
