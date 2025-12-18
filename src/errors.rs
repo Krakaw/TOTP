@@ -24,6 +24,7 @@ pub enum TotpError {
     MissingLockKey,
     #[allow(dead_code)]
     Utf8(String),
+    #[allow(dead_code)]
     InvalidOtpForRange,
     #[allow(dead_code)]
     Ui(String),

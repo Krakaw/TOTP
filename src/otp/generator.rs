@@ -32,6 +32,7 @@ impl Generator {
         Ok((self.totp.generate(time), rounded_up))
     }
 
+    #[allow(dead_code)]
     pub fn check_range(
         &self,
         code: &str,
@@ -50,6 +51,7 @@ impl Generator {
         }
         Err(TotpError::InvalidOtpForRange)
     }
+    #[allow(dead_code)]
     pub fn check(&self, code: &str, time: Option<u64>) -> bool {
         let time = time.unwrap_or(chrono::Utc::now().timestamp() as u64);
         self.totp.check(code, time)
