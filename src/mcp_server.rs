@@ -504,7 +504,6 @@ fn main() -> Result<(), TotpError> {
     let mut stdout = std::io::stdout();
     let mut buf: Vec<u8> = Vec::new();
 
-
     while let Some(msg) = read_one_rpc(&mut stdin, &mut buf)? {
         let id = msg.json.get("id").cloned().unwrap_or(Value::Null);
         let method = msg
@@ -513,7 +512,6 @@ fn main() -> Result<(), TotpError> {
             .and_then(|m| m.as_str())
             .unwrap_or("");
         let params = msg.json.get("params").cloned().unwrap_or(Value::Null);
-
 
         // Notifications don't require replies (id is null/missing). We still handle exit gracefully.
         let needs_reply = !id.is_null();
