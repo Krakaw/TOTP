@@ -248,10 +248,14 @@ fn open_storage(
 }
 
 fn tool_add(args: &Value) -> Result<Value, TotpError> {
-    let db_password = arg_str(args, "db_password").unwrap_or_default();
+    let db_password = arg_str(args, "db_password")
+        .filter(|s| !s.is_empty())
+        .ok_or_else(|| TotpError::ValidationError("db_password is required".to_string()))?;
     let sqlite_path = arg_str(args, "sqlite_path");
     let auto_lock_key = arg_bool(args, "auto_lock_key").unwrap_or(true);
-    let account = arg_str(args, "account").unwrap_or_default();
+    let account = arg_str(args, "account")
+        .filter(|s| !s.is_empty())
+        .ok_or_else(|| TotpError::ValidationError("account is required".to_string()))?;
 
     let user = args
         .get("user")
@@ -308,7 +312,9 @@ fn tool_add(args: &Value) -> Result<Value, TotpError> {
 }
 
 fn tool_edit(args: &Value) -> Result<Value, TotpError> {
-    let db_password = arg_str(args, "db_password").unwrap_or_default();
+    let db_password = arg_str(args, "db_password")
+        .filter(|s| !s.is_empty())
+        .ok_or_else(|| TotpError::ValidationError("db_password is required".to_string()))?;
     let sqlite_path = arg_str(args, "sqlite_path");
     let auto_lock_key = arg_bool(args, "auto_lock_key").unwrap_or(true);
     let id = arg_u32(args, "id").unwrap_or(0);
@@ -365,13 +371,15 @@ fn tool_edit(args: &Value) -> Result<Value, TotpError> {
     }
     record.token = token;
 
-    storage.edit_account(record.clone())?;
+    storage.edit_account(record)?;
     let updated = storage.get_account(id)?;
     Ok(json!({ "ok": true, "record": updated }))
 }
 
 fn tool_delete(args: &Value) -> Result<Value, TotpError> {
-    let db_password = arg_str(args, "db_password").unwrap_or_default();
+    let db_password = arg_str(args, "db_password")
+        .filter(|s| !s.is_empty())
+        .ok_or_else(|| TotpError::ValidationError("db_password is required".to_string()))?;
     let sqlite_path = arg_str(args, "sqlite_path");
     let auto_lock_key = arg_bool(args, "auto_lock_key").unwrap_or(true);
     let id = arg_u32(args, "id").unwrap_or(0);
@@ -382,7 +390,9 @@ fn tool_delete(args: &Value) -> Result<Value, TotpError> {
 }
 
 fn build_token_from_args(args: &Value) -> Result<Token, TotpError> {
-    let secret = arg_str(args, "secret").unwrap_or_default();
+    let secret = arg_str(args, "secret")
+        .filter(|s| !s.trim().is_empty())
+        .ok_or_else(|| TotpError::ValidationError("secret is required".to_string()))?;
     let mut token: Token = secret.parse()?;
     if let Some(d) = args
         .get("digits")

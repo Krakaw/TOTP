@@ -10,6 +10,8 @@ pub enum TotpError {
     #[allow(dead_code)]
     AccountNotFound(String),
     #[allow(dead_code)]
+    ValidationError(String),
+    #[allow(dead_code)]
     Base32Decode(String),
     #[allow(dead_code)]
     Clap(String),
